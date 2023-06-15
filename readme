@@ -1,0 +1,10 @@
+the Artefacts Server provides downloadable binaries and packages in various formats for deployment and testing.
+For example, it might serve
+* go module URLs
+* maven URLs
+???
+
+It may also be used by an html server to provide pretty download links
+
+It contains AccessControls for artefacts (by repository, not by file)
+
