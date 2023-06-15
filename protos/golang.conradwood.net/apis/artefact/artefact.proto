@@ -1,0 +1,161 @@
+
+syntax = "proto3";
+
+package artefact;
+option java_package = "net.conradwood.golang.apis.artefact";
+import "golang.conradwood.net/apis/common/common.proto";
+import "golang.conradwood.net/apis/h2gproxy/h2gproxy.proto";
+
+message ArtefactList {
+  repeated Contents Artefacts = 1;
+}
+
+message DownloadRequest {
+  string Reference = 1; // Reference from file proto
+}
+message FileStream {
+  bytes Data = 1;
+}
+
+message Reference {
+  string Reference = 1;
+}
+enum ContentType {
+  Directory = 0;
+  File = 1;
+  Artefact = 2;
+}
+message ArtefactRef {
+  string Name = 1;
+  uint64 Version = 2;
+}
+message SerialReference {
+  uint32 RefType = 1;
+  uint64 Version = 2;
+  repeated string Texts = 3;
+  string Domain = 4;
+  string BuildRepo = 5; // ip/port of buildrepo server who serves this
+}
+message Contents {
+  string ReferenceVersion = 1;   // an opaque reference to a specific version of this directory (or artefact)
+  string ReferenceLatest = 2;    // an opaque reference to a latest version of this directory (or artefact)
+  repeated Contents Entries = 3; // the files & directories under this level
+  string Name = 4;
+  uint64 Version = 5;
+  bool AdminAccess = 6;
+  ContentType Type = 7;
+  ArtefactRef Artefact = 8; // which artefact is this in? (an artefact has nil)
+  string Path = 9;          // path to dir, e.g. dist/linux/...
+  bool Downloadable = 10;   // true if the file is downloadable
+  // the name of an artefact is not entirely sufficient. we may have multiple buildrepo servers too
+  string Domain = 11;
+  ArtefactID ArtefactID = 12; // artefacts (not contents) have a database ID
+  string BuildRepo = 13;      // ip/port of buildrepo server who serves this
+  uint64 RepositoryID=14; // the ID of the repository
+  string LinkToVersion=15; // a link to this specific version
+  string LinkToLatest=16; // link to this file/dir/repo in latest version
+}
+
+message SetAccessRequest {
+  Reference Target = 1; // on which thing do we change ACL
+  string UserID = 2;    // who's the subject
+  bool Grant = 3;       // if true: allow access, otherwise deny
+}
+
+// for database, probably should not use that anymore
+message ArtefactID {
+  uint64 ID = 1;
+  string Domain = 2;
+  string Name = 3;
+}
+
+message FindRequest {
+  // only return results containing this
+  string NameMatch = 1;
+}
+
+message GetVersionRequest {
+  string Name = 1;
+  string Domain = 2;
+  uint64 Version = 3;
+}
+message BuildList {
+  repeated uint64 Builds=1;
+}
+
+message DirListRequest {
+  uint64 Build=1;
+  string Dir=2; // relative directory within this artefact, e.g. './dist'
+  uint64 ArtefactID=3;
+  
+}
+message FileRequest {
+  uint64 ArtefactID=1;
+  uint64 Build=2;
+  string Filename=3; // relative to repository root filename, e.g. "deployment/deploy.yaml"
+}
+message FileInfo {
+  string Name=1; // not a qualified name. never contains '/' or '.'
+  string RelativeDir=2; // the containing directory, relative to the top root repository
+}
+message DirInfo {
+  string Name=1; // not a qualified name. never contains '/' or '.'
+  string RelativeDir=2; // the containing directory, relative to the top root repository
+}
+
+message ArtefactInfo {
+  uint64 ID=1;
+  string Name=2;
+}
+message DirListing {
+  repeated FileInfo Files=1;
+  repeated DirInfo Dirs=2;
+  ArtefactInfo ArtefactInfo=3;
+  string Path=4;
+}
+
+message FileStreamResponse {
+  uint64 Filesize=1;
+  bytes Payload=2;
+}
+
+message FileExistsInfo {
+  bool Exists=1;
+  uint64 Size=2;
+}
+message ID {
+  uint64 ID=1;
+}
+// provides access to artefacts
+service ArtefactService {
+  // list *latest* version of all artefacts (for this user)
+  rpc List(common.Void) returns (ArtefactList);
+  // get contents of a directory or artefact.
+  rpc GetContents(Reference) returns (Contents);
+  // download a file via http
+  rpc StreamHTTP(h2gproxy.StreamRequest) returns (stream h2gproxy.StreamDataResponse);
+  // download a file via gRPC stream
+  rpc GetFile(Reference) returns (stream h2gproxy.StreamDataResponse);
+  // set access to a repo/artefact
+  rpc SetAccess(SetAccessRequest) returns (common.Void);
+  // finds artefacts based on fuzzy string matches
+  rpc Find(FindRequest) returns (ArtefactList);
+  // get a specific version of a repository
+  rpc GetRepoVersion(GetVersionRequest) returns (Contents);
+  // get builds for a given artefact
+  rpc GetArtefactBuilds(ArtefactID) returns (BuildList);
+  // get list of files for a given artefact, build and directory
+  rpc GetDirListing(DirListRequest) returns (DirListing);
+  // get a file as stream
+  rpc GetFileStream(FileRequest) returns (stream FileStreamResponse);
+    // does file exist
+  rpc DoesFileExist(FileRequest) returns (FileExistsInfo);
+  // get which repo fed this artefact
+  rpc GetRepoForArtefact(ID) returns (ID);
+  // get an artefact for a given repo
+  rpc GetArtefactForRepo(ID) returns (ID);
+  // get an artefact for a given repo
+  rpc GetArtefactByID(ID) returns (ArtefactID);
+  // get an artefactid for a given repo
+  rpc GetArtefactIDForRepo(ID) returns (ArtefactID);
+}
