@@ -12,9 +12,8 @@ import (
 )
 
 var (
-	PRIVILEGED_SERVICES = []string{"833"}
-	perm_cache          = cache.New("perm_cache", time.Duration(120)*time.Second, 1000)
-	always_allow_root   = flag.Bool("always_allow_root", true, "if true root gets access to every artefact")
+	perm_cache        = cache.New("perm_cache", time.Duration(120)*time.Second, 1000)
+	always_allow_root = flag.Bool("always_allow_root", true, "if true root gets access to every artefact")
 )
 
 type perm_cache_entry struct {
@@ -31,6 +30,9 @@ func is_privileged_service(ctx context.Context) bool {
 	svc := auth.GetService(ctx)
 	if svc == nil {
 		return false
+	}
+	PRIVILEGED_SERVICES := []string{
+		auth.GetServiceIDByName("espota.ESPOtaService"),
 	}
 	for _, sa := range PRIVILEGED_SERVICES {
 		if sa == svc.ID {
@@ -64,7 +66,7 @@ func requestAccess(ctx context.Context, artefactName string, domain string) (uin
 		return rid, nil
 	}
 	svc := auth.GetService(ctx)
-	if svc != nil && svc.ID == "3539" {
+	if svc != nil && svc.ID == auth.GetServiceIDByName("repobuilder.RepoBuilder") {
 		return rid, nil
 	}
 	key := fmt.Sprintf("%s_%d", u.ID, rid)
