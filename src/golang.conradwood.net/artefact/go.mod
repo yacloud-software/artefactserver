@@ -8,7 +8,7 @@ require (
 	golang.conradwood.net/apis/common v1.1.2309
 	golang.conradwood.net/apis/h2gproxy v1.1.2309
 	golang.conradwood.net/apis/objectauth v1.1.2309
-	golang.conradwood.net/go-easyops v0.1.17806
+	golang.conradwood.net/go-easyops v0.1.17825
 	golang.org/x/net v0.11.0
 	google.golang.org/grpc v1.55.0
 )
@@ -18,7 +18,6 @@ require (
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
-	github.com/kr/text v0.2.0 // indirect
 	github.com/lib/pq v1.10.9 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/prometheus/client_golang v1.16.0 // indirect
