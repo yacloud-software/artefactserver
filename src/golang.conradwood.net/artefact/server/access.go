@@ -74,7 +74,7 @@ func requestAccess(ctx context.Context, artefactName string, domain string) (uin
 	if perm_cache_object != nil {
 		pce := perm_cache_object.(*perm_cache_entry)
 		if !pce.allowed {
-			return 0, errors.AccessDenied(ctx, "(1) access to artefact %s denied", artefactName)
+			return 0, errors.AccessDenied(ctx, "(1) access to artefact #%d (%s) denied", rid, artefactName)
 		}
 		return rid, nil
 	}
