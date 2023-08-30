@@ -2,10 +2,12 @@ package buildrepo
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	br "golang.conradwood.net/apis/buildrepo"
 	"golang.conradwood.net/go-easyops/client"
 	"io"
+	"strings"
 	"sync"
 )
 
@@ -13,15 +15,31 @@ import (
 * consolidate multiple repositories
  */
 var (
-	buildrepos = map[string]string{
+	user_buildrepos    = flag.String("buildrepos", "", "if set, a comma delimited mapping with buildrepos, e.g. domain:foo-host.localdomain,otherdomain:bar-host.localdomain")
+	default_buildrepos = map[string]string{
 		"conradwood.net": "buildrepo.vpn.conrad.localdomain",
 		"singingcat.net": "scbuildrepo.singingcat.localdomain",
 	}
 	clients = make(map[string]br.BuildRepoManagerClient)
 )
 
+func get_build_repo_map() map[string]string {
+	if *user_buildrepos == "" {
+		return default_buildrepos
+	}
+	ma := strings.Split(*user_buildrepos, ",")
+	res := make(map[string]string)
+	for _, m := range ma {
+		l := strings.SplitN(m, ":", 2)
+		if len(l) != 2 {
+			panic(fmt.Sprintf("invalid buildrepo mapping: %s", m))
+		}
+		res[l[0]] = l[1]
+	}
+	return nil
+}
 func CreateBuildrepo() *BuildRepo {
-	for _, v := range buildrepos {
+	for _, v := range get_build_repo_map() {
 		adr := fmt.Sprintf("%s:5005", v)
 		fmt.Printf("Connecting to buildrepo at: %s\n", adr)
 		c, err := client.ConnectWithIP(adr)
@@ -185,7 +203,7 @@ func (b *BuildRepo) ListVersions(ctx context.Context, domain string, glvr *br.Li
 	return v, nil
 }
 func GetDefaultBuildRepoForDomain(domain string) string {
-	for k, v := range buildrepos {
+	for k, v := range get_build_repo_map() {
 		if k == domain {
 			return v
 		}
@@ -194,7 +212,7 @@ func GetDefaultBuildRepoForDomain(domain string) string {
 }
 
 func GetDefaultDomainForBuildRepo(target string) string {
-	for k, v := range buildrepos {
+	for k, v := range get_build_repo_map() {
 		if v == target {
 			return k
 		}
