@@ -1,6 +1,6 @@
 // client create: ArtefactServiceClient
 /*
-  Created by /srv/home/cnw/devel/go/go-tools/src/golang.conradwood.net/gotools/protoc-gen-cnw/protoc-gen-cnw.go
+  Created by /home/cnw/devel/go/yatools/src/golang.yacloud.eu/yatools/protoc-gen-cnw/protoc-gen-cnw.go
 */
 
 /* geninfo:
@@ -13,7 +13,7 @@
    varname   : client_ArtefactServiceClient_0
    clientname: ArtefactServiceClient
    servername: ArtefactServiceServer
-   gscvname  : artefact.ArtefactService
+   gsvcname  : artefact.ArtefactService
    lockname  : lock_ArtefactServiceClient_0
    activename: active_ArtefactServiceClient_0
 */
@@ -62,3 +62,7 @@ func GetArtefactServiceClient() ArtefactServiceClient {
 }
 
 func ArtefactServiceLookupID() string { return "artefact.ArtefactService" } // returns the ID suitable for lookup in the registry. treat as opaque, subject to change.
+
+func init() {
+   client.RegisterDependency("artefact.ArtefactService")
+}
