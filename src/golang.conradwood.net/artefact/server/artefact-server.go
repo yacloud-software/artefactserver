@@ -209,7 +209,9 @@ func (e *artefactServer) List(ctx context.Context, req *common.Void) (*pb.Artefa
 	})
 	return resp, nil
 }
-
+func (e *artefactServer) MetaByID(ctx context.Context, req *pb.ID) (*pb.ArtefactMeta, error) {
+	return &pb.ArtefactMeta{ID: req.ID}, nil
+}
 func (e *artefactServer) GetContents(ctx context.Context, req *pb.Reference) (*pb.Contents, error) {
 	if *use_v2 && strings.HasPrefix(req.Reference, "/") {
 		return e.GetContents2(ctx, req)
