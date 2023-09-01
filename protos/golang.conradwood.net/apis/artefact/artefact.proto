@@ -164,4 +164,6 @@ service ArtefactService {
   rpc GetArtefactByID(ID) returns (ArtefactID);
   // get an artefactid for a given repo
   rpc GetArtefactIDForRepo(ID) returns (ArtefactID);
+  // get artefact metadata by artefactid
+  rpc MetaByID(ID) returns (ArtefactMeta);
 }
