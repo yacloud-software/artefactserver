@@ -127,6 +127,11 @@ message FileExistsInfo {
 message ID {
   uint64 ID=1;
 }
+
+// metadata about an artefact
+message ArtefactMeta {
+  uint64 ID=1;
+}
 // provides access to artefacts
 service ArtefactService {
   // list *latest* version of all artefacts (for this user)
