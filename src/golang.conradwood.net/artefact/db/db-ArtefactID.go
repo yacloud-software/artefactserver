@@ -16,27 +16,60 @@ package db
 
 Main Table:
 
- CREATE TABLE artefactid (id integer primary key default nextval('artefactid_seq'),domain varchar(2000) not null,name varchar(2000) not null);
+ CREATE TABLE artefactid (id integer primary key default nextval('artefactid_seq'),domain text not null  ,name text not null  );
+
+Alter statements:
+ALTER TABLE artefactid ADD COLUMN IF NOT EXISTS domain text not null default '';
+ALTER TABLE artefactid ADD COLUMN IF NOT EXISTS name text not null default '';
+
 
 Archive Table: (structs can be moved from main to archive using Archive() function)
 
- CREATE TABLE artefactid_archive (id integer unique not null,domain varchar(2000) not null,name varchar(2000) not null);
+ CREATE TABLE artefactid_archive (id integer unique not null,domain text not null,name text not null);
 */
 
 import (
+	"context"
 	gosql "database/sql"
 	"fmt"
 	savepb "golang.conradwood.net/apis/artefact"
 	"golang.conradwood.net/go-easyops/sql"
-	"golang.org/x/net/context"
+	"os"
+)
+
+var (
+	default_def_DBArtefactID *DBArtefactID
 )
 
 type DBArtefactID struct {
-	DB *sql.DB
+	DB                  *sql.DB
+	SQLTablename        string
+	SQLArchivetablename string
 }
 
+func DefaultDBArtefactID() *DBArtefactID {
+	if default_def_DBArtefactID != nil {
+		return default_def_DBArtefactID
+	}
+	psql, err := sql.Open()
+	if err != nil {
+		fmt.Printf("Failed to open database: %s\n", err)
+		os.Exit(10)
+	}
+	res := NewDBArtefactID(psql)
+	ctx := context.Background()
+	err = res.CreateTable(ctx)
+	if err != nil {
+		fmt.Printf("Failed to create table: %s\n", err)
+		os.Exit(10)
+	}
+	default_def_DBArtefactID = res
+	return res
+}
 func NewDBArtefactID(db *sql.DB) *DBArtefactID {
 	foo := DBArtefactID{DB: db}
+	foo.SQLTablename = "artefactid"
+	foo.SQLArchivetablename = "artefactid_archive"
 	return &foo
 }
 
@@ -50,7 +83,7 @@ func (a *DBArtefactID) Archive(ctx context.Context, id uint64) error {
 	}
 
 	// now save it to archive:
-	_, e := a.DB.ExecContext(ctx, "insert_DBArtefactID", "insert into artefactid_archive (id,domain, name) values ($1,$2, $3) ", p.ID, p.Domain, p.Name)
+	_, e := a.DB.ExecContext(ctx, "archive_DBArtefactID", "insert into "+a.SQLArchivetablename+" (id,domain, name) values ($1,$2, $3) ", p.ID, p.Domain, p.Name)
 	if e != nil {
 		return e
 	}
@@ -62,18 +95,19 @@ func (a *DBArtefactID) Archive(ctx context.Context, id uint64) error {
 
 // Save (and use database default ID generation)
 func (a *DBArtefactID) Save(ctx context.Context, p *savepb.ArtefactID) (uint64, error) {
-	rows, e := a.DB.QueryContext(ctx, "DBArtefactID_Save", "insert into artefactid (domain, name) values ($1, $2) returning id", p.Domain, p.Name)
+	qn := "DBArtefactID_Save"
+	rows, e := a.DB.QueryContext(ctx, qn, "insert into "+a.SQLTablename+" (domain, name) values ($1, $2) returning id", p.Domain, p.Name)
 	if e != nil {
-		return 0, e
+		return 0, a.Error(ctx, qn, e)
 	}
 	defer rows.Close()
 	if !rows.Next() {
-		return 0, fmt.Errorf("No rows after insert")
+		return 0, a.Error(ctx, qn, fmt.Errorf("No rows after insert"))
 	}
 	var id uint64
 	e = rows.Scan(&id)
 	if e != nil {
-		return 0, fmt.Errorf("failed to scan id after insert: %s", e)
+		return 0, a.Error(ctx, qn, fmt.Errorf("failed to scan id after insert: %s", e))
 	}
 	p.ID = id
 	return id, nil
@@ -81,47 +115,73 @@ func (a *DBArtefactID) Save(ctx context.Context, p *savepb.ArtefactID) (uint64, 
 
 // Save using the ID specified
 func (a *DBArtefactID) SaveWithID(ctx context.Context, p *savepb.ArtefactID) error {
-	_, e := a.DB.ExecContext(ctx, "insert_DBArtefactID", "insert into artefactid (id,domain, name) values ($1,$2, $3) ", p.ID, p.Domain, p.Name)
-	return e
+	qn := "insert_DBArtefactID"
+	_, e := a.DB.ExecContext(ctx, qn, "insert into "+a.SQLTablename+" (id,domain, name) values ($1,$2, $3) ", p.ID, p.Domain, p.Name)
+	return a.Error(ctx, qn, e)
 }
 
 func (a *DBArtefactID) Update(ctx context.Context, p *savepb.ArtefactID) error {
-	_, e := a.DB.ExecContext(ctx, "DBArtefactID_Update", "update artefactid set domain=$1, name=$2 where id = $3", p.Domain, p.Name, p.ID)
+	qn := "DBArtefactID_Update"
+	_, e := a.DB.ExecContext(ctx, qn, "update "+a.SQLTablename+" set domain=$1, name=$2 where id = $3", p.Domain, p.Name, p.ID)
 
-	return e
+	return a.Error(ctx, qn, e)
 }
 
 // delete by id field
 func (a *DBArtefactID) DeleteByID(ctx context.Context, p uint64) error {
-	_, e := a.DB.ExecContext(ctx, "deleteDBArtefactID_ByID", "delete from artefactid where id = $1", p)
-	return e
+	qn := "deleteDBArtefactID_ByID"
+	_, e := a.DB.ExecContext(ctx, qn, "delete from "+a.SQLTablename+" where id = $1", p)
+	return a.Error(ctx, qn, e)
 }
 
 // get it by primary id
 func (a *DBArtefactID) ByID(ctx context.Context, p uint64) (*savepb.ArtefactID, error) {
-	rows, e := a.DB.QueryContext(ctx, "DBArtefactID_ByID", "select id,domain, name from artefactid where id = $1", p)
+	qn := "DBArtefactID_ByID"
+	rows, e := a.DB.QueryContext(ctx, qn, "select id,domain, name from "+a.SQLTablename+" where id = $1", p)
 	if e != nil {
-		return nil, fmt.Errorf("ByID: error querying (%s)", e)
+		return nil, a.Error(ctx, qn, fmt.Errorf("ByID: error querying (%s)", e))
 	}
 	defer rows.Close()
 	l, e := a.FromRows(ctx, rows)
 	if e != nil {
-		return nil, fmt.Errorf("ByID: error scanning (%s)", e)
+		return nil, a.Error(ctx, qn, fmt.Errorf("ByID: error scanning (%s)", e))
 	}
 	if len(l) == 0 {
-		return nil, fmt.Errorf("No ArtefactID with id %d", p)
+		return nil, a.Error(ctx, qn, fmt.Errorf("No ArtefactID with id %v", p))
 	}
 	if len(l) != 1 {
-		return nil, fmt.Errorf("Multiple (%d) ArtefactID with id %d", len(l), p)
+		return nil, a.Error(ctx, qn, fmt.Errorf("Multiple (%d) ArtefactID with id %v", len(l), p))
+	}
+	return l[0], nil
+}
+
+// get it by primary id (nil if no such ID row, but no error either)
+func (a *DBArtefactID) TryByID(ctx context.Context, p uint64) (*savepb.ArtefactID, error) {
+	qn := "DBArtefactID_TryByID"
+	rows, e := a.DB.QueryContext(ctx, qn, "select id,domain, name from "+a.SQLTablename+" where id = $1", p)
+	if e != nil {
+		return nil, a.Error(ctx, qn, fmt.Errorf("TryByID: error querying (%s)", e))
+	}
+	defer rows.Close()
+	l, e := a.FromRows(ctx, rows)
+	if e != nil {
+		return nil, a.Error(ctx, qn, fmt.Errorf("TryByID: error scanning (%s)", e))
+	}
+	if len(l) == 0 {
+		return nil, nil
+	}
+	if len(l) != 1 {
+		return nil, a.Error(ctx, qn, fmt.Errorf("Multiple (%d) ArtefactID with id %v", len(l), p))
 	}
 	return l[0], nil
 }
 
 // get all rows
 func (a *DBArtefactID) All(ctx context.Context) ([]*savepb.ArtefactID, error) {
-	rows, e := a.DB.QueryContext(ctx, "DBArtefactID_all", "select id,domain, name from artefactid order by id")
+	qn := "DBArtefactID_all"
+	rows, e := a.DB.QueryContext(ctx, qn, "select id,domain, name from "+a.SQLTablename+" order by id")
 	if e != nil {
-		return nil, fmt.Errorf("All: error querying (%s)", e)
+		return nil, a.Error(ctx, qn, fmt.Errorf("All: error querying (%s)", e))
 	}
 	defer rows.Close()
 	l, e := a.FromRows(ctx, rows)
@@ -137,41 +197,89 @@ func (a *DBArtefactID) All(ctx context.Context) ([]*savepb.ArtefactID, error) {
 
 // get all "DBArtefactID" rows with matching Domain
 func (a *DBArtefactID) ByDomain(ctx context.Context, p string) ([]*savepb.ArtefactID, error) {
-	rows, e := a.DB.QueryContext(ctx, "DBArtefactID_ByDomain", "select id,domain, name from artefactid where domain = $1", p)
+	qn := "DBArtefactID_ByDomain"
+	rows, e := a.DB.QueryContext(ctx, qn, "select id,domain, name from "+a.SQLTablename+" where domain = $1", p)
 	if e != nil {
-		return nil, fmt.Errorf("ByDomain: error querying (%s)", e)
+		return nil, a.Error(ctx, qn, fmt.Errorf("ByDomain: error querying (%s)", e))
 	}
 	defer rows.Close()
 	l, e := a.FromRows(ctx, rows)
 	if e != nil {
-		return nil, fmt.Errorf("ByDomain: error scanning (%s)", e)
+		return nil, a.Error(ctx, qn, fmt.Errorf("ByDomain: error scanning (%s)", e))
+	}
+	return l, nil
+}
+
+// the 'like' lookup
+func (a *DBArtefactID) ByLikeDomain(ctx context.Context, p string) ([]*savepb.ArtefactID, error) {
+	qn := "DBArtefactID_ByLikeDomain"
+	rows, e := a.DB.QueryContext(ctx, qn, "select id,domain, name from "+a.SQLTablename+" where domain ilike $1", p)
+	if e != nil {
+		return nil, a.Error(ctx, qn, fmt.Errorf("ByDomain: error querying (%s)", e))
+	}
+	defer rows.Close()
+	l, e := a.FromRows(ctx, rows)
+	if e != nil {
+		return nil, a.Error(ctx, qn, fmt.Errorf("ByDomain: error scanning (%s)", e))
 	}
 	return l, nil
 }
 
 // get all "DBArtefactID" rows with matching Name
 func (a *DBArtefactID) ByName(ctx context.Context, p string) ([]*savepb.ArtefactID, error) {
-	rows, e := a.DB.QueryContext(ctx, "DBArtefactID_ByName", "select id,domain, name from artefactid where name = $1", p)
+	qn := "DBArtefactID_ByName"
+	rows, e := a.DB.QueryContext(ctx, qn, "select id,domain, name from "+a.SQLTablename+" where name = $1", p)
 	if e != nil {
-		return nil, fmt.Errorf("ByName: error querying (%s)", e)
+		return nil, a.Error(ctx, qn, fmt.Errorf("ByName: error querying (%s)", e))
 	}
 	defer rows.Close()
 	l, e := a.FromRows(ctx, rows)
 	if e != nil {
-		return nil, fmt.Errorf("ByName: error scanning (%s)", e)
+		return nil, a.Error(ctx, qn, fmt.Errorf("ByName: error scanning (%s)", e))
 	}
 	return l, nil
+}
+
+// the 'like' lookup
+func (a *DBArtefactID) ByLikeName(ctx context.Context, p string) ([]*savepb.ArtefactID, error) {
+	qn := "DBArtefactID_ByLikeName"
+	rows, e := a.DB.QueryContext(ctx, qn, "select id,domain, name from "+a.SQLTablename+" where name ilike $1", p)
+	if e != nil {
+		return nil, a.Error(ctx, qn, fmt.Errorf("ByName: error querying (%s)", e))
+	}
+	defer rows.Close()
+	l, e := a.FromRows(ctx, rows)
+	if e != nil {
+		return nil, a.Error(ctx, qn, fmt.Errorf("ByName: error scanning (%s)", e))
+	}
+	return l, nil
+}
+
+/**********************************************************************
+* Helper to convert from an SQL Query
+**********************************************************************/
+
+// from a query snippet (the part after WHERE)
+func (a *DBArtefactID) FromQuery(ctx context.Context, query_where string, args ...interface{}) ([]*savepb.ArtefactID, error) {
+	rows, err := a.DB.QueryContext(ctx, "custom_query_"+a.Tablename(), "select "+a.SelectCols()+" from "+a.Tablename()+" where "+query_where, args...)
+	if err != nil {
+		return nil, err
+	}
+	return a.FromRows(ctx, rows)
 }
 
 /**********************************************************************
 * Helper to convert from an SQL Row to struct
 **********************************************************************/
 func (a *DBArtefactID) Tablename() string {
-	return "artefactid"
+	return a.SQLTablename
 }
 
 func (a *DBArtefactID) SelectCols() string {
 	return "id,domain, name"
+}
+func (a *DBArtefactID) SelectColsQualified() string {
+	return "" + a.SQLTablename + ".id," + a.SQLTablename + ".domain, " + a.SQLTablename + ".name"
 }
 
 func (a *DBArtefactID) FromRows(ctx context.Context, rows *gosql.Rows) ([]*savepb.ArtefactID, error) {
@@ -180,9 +288,39 @@ func (a *DBArtefactID) FromRows(ctx context.Context, rows *gosql.Rows) ([]*savep
 		foo := savepb.ArtefactID{}
 		err := rows.Scan(&foo.ID, &foo.Domain, &foo.Name)
 		if err != nil {
-			return nil, err
+			return nil, a.Error(ctx, "fromrow-scan", err)
 		}
 		res = append(res, &foo)
 	}
 	return res, nil
+}
+
+/**********************************************************************
+* Helper to create table and columns
+**********************************************************************/
+func (a *DBArtefactID) CreateTable(ctx context.Context) error {
+	csql := []string{
+		`create sequence if not exists ` + a.SQLTablename + `_seq;`,
+		`CREATE TABLE if not exists ` + a.SQLTablename + ` (id integer primary key default nextval('` + a.SQLTablename + `_seq'),domain text not null  ,name text not null  );`,
+		`CREATE TABLE if not exists ` + a.SQLTablename + `_archive (id integer primary key default nextval('` + a.SQLTablename + `_seq'),domain text not null  ,name text not null  );`,
+		`ALTER TABLE artefactid ADD COLUMN IF NOT EXISTS domain text not null default '';`,
+		`ALTER TABLE artefactid ADD COLUMN IF NOT EXISTS name text not null default '';`,
+	}
+	for i, c := range csql {
+		_, e := a.DB.ExecContext(ctx, fmt.Sprintf("create_"+a.SQLTablename+"_%d", i), c)
+		if e != nil {
+			return e
+		}
+	}
+	return nil
+}
+
+/**********************************************************************
+* Helper to meaningful errors
+**********************************************************************/
+func (a *DBArtefactID) Error(ctx context.Context, q string, e error) error {
+	if e == nil {
+		return nil
+	}
+	return fmt.Errorf("[table="+a.SQLTablename+", query=%s] Error: %s", q, e)
 }

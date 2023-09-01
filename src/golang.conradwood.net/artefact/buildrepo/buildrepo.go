@@ -21,6 +21,7 @@ var (
 		"singingcat.net": "scbuildrepo.singingcat.localdomain",
 	}
 	clients = make(map[string]br.BuildRepoManagerClient)
+	debug   = flag.Bool("debug_repos", false, "debug repo code")
 )
 
 func get_build_repo_map() map[string]string {
@@ -36,10 +37,15 @@ func get_build_repo_map() map[string]string {
 		}
 		res[l[0]] = l[1]
 	}
-	return nil
+	return res
 }
 func CreateBuildrepo() *BuildRepo {
-	for _, v := range get_build_repo_map() {
+	m := get_build_repo_map()
+	debugf("Creating buildrepo clients for %d repos\n", len(m))
+	if len(m) == 0 {
+		panic("need at least one buildrepo")
+	}
+	for _, v := range m {
 		adr := fmt.Sprintf("%s:5005", v)
 		fmt.Printf("Connecting to buildrepo at: %s\n", adr)
 		c, err := client.ConnectWithIP(adr)
@@ -47,6 +53,7 @@ func CreateBuildrepo() *BuildRepo {
 			panic(fmt.Sprintf("Failed to connect to buildrepo @ %s: %s", v, err))
 		}
 		clients[v] = br.NewBuildRepoManagerClient(c)
+		debugf("Connected to %s\n", adr)
 	}
 	res := &BuildRepo{}
 	return res
@@ -64,6 +71,7 @@ type RepoEntry struct {
 
 // get repos from all build servers
 func (b *BuildRepo) ListRepos(ctx context.Context) (*RepoList, error) {
+	debugf("Listing repos in %d clients\n", len(clients))
 	var wg sync.WaitGroup
 	var terr error
 	res := &RepoList{}

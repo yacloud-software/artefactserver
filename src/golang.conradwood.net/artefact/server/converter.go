@@ -8,6 +8,7 @@ import (
 	"golang.conradwood.net/go-easyops/auth"
 	"golang.conradwood.net/go-easyops/cache"
 	"golang.conradwood.net/go-easyops/errors"
+	"golang.conradwood.net/go-easyops/utils"
 	"time"
 )
 
@@ -28,12 +29,18 @@ func (e *artefactServer) GetArtefactIDForRepo(ctx context.Context, id *pb.ID) (*
 	return e.GetArtefactByID(ctx, id)
 }
 func (e *artefactServer) GetArtefactForRepo(ctx context.Context, id *pb.ID) (*pb.ID, error) {
+	debugf("getting artefact for repo %d\n", id.ID)
 	repos, err := brepo.ListRepos(ctx)
 	if err != nil {
+		debugf("error listing repos: %s", utils.ErrorString(err))
 		return nil, err
 	}
+	debugf("Found %d repos\n", len(repos.Entries))
 	afid := uint64(0)
 	for _, r := range repos.Entries {
+		if *debug {
+			fmt.Printf("Checking %s against %d\n", r.Name, id.ID)
+		}
 		glv, err := brepo.GetLatestVersion(ctx, r.Domain, &br.GetLatestVersionRequest{
 			Repository: r.Name,
 			Branch:     "master",

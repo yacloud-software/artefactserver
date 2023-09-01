@@ -1,7 +1,6 @@
 package main
 
 import (
-    "golang.conradwood.net/go-easyops/authremote"
 	"context"
 	"flag"
 	"fmt"
@@ -11,10 +10,10 @@ import (
 	"golang.conradwood.net/artefact/buildrepo"
 	"golang.conradwood.net/artefact/db"
 	"golang.conradwood.net/go-easyops/auth"
+	"golang.conradwood.net/go-easyops/authremote"
 	"golang.conradwood.net/go-easyops/cache"
 	"golang.conradwood.net/go-easyops/errors"
 	"golang.conradwood.net/go-easyops/server"
-	"golang.conradwood.net/go-easyops/sql"
 	"golang.conradwood.net/go-easyops/utils"
 	"google.golang.org/grpc"
 	"os"
@@ -41,9 +40,8 @@ type artefactServer struct {
 func main() {
 	flag.Parse()
 	fmt.Printf("Starting ArtefactServiceServer...\n")
-	psql, err := sql.Open()
-	utils.Bail("failed to open sql", err)
-	idstore = db.NewDBArtefactID(psql)
+	var err error
+	idstore = db.DefaultDBArtefactID()
 	if *bdomain == "" {
 		fmt.Printf("Missing buildrepo_domain\n")
 		os.Exit(10)
