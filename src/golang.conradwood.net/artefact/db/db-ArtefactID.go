@@ -16,16 +16,17 @@ package db
 
 Main Table:
 
- CREATE TABLE artefactid (id integer primary key default nextval('artefactid_seq'),domain text not null  ,name text not null  );
+ CREATE TABLE artefactid (id integer primary key default nextval('artefactid_seq'),domain text not null  ,name text not null  ,url text not null  );
 
 Alter statements:
 ALTER TABLE artefactid ADD COLUMN IF NOT EXISTS domain text not null default '';
 ALTER TABLE artefactid ADD COLUMN IF NOT EXISTS name text not null default '';
+ALTER TABLE artefactid ADD COLUMN IF NOT EXISTS url text not null default '';
 
 
 Archive Table: (structs can be moved from main to archive using Archive() function)
 
- CREATE TABLE artefactid_archive (id integer unique not null,domain text not null,name text not null);
+ CREATE TABLE artefactid_archive (id integer unique not null,domain text not null,name text not null,url text not null);
 */
 
 import (
@@ -83,7 +84,7 @@ func (a *DBArtefactID) Archive(ctx context.Context, id uint64) error {
 	}
 
 	// now save it to archive:
-	_, e := a.DB.ExecContext(ctx, "archive_DBArtefactID", "insert into "+a.SQLArchivetablename+" (id,domain, name) values ($1,$2, $3) ", p.ID, p.Domain, p.Name)
+	_, e := a.DB.ExecContext(ctx, "archive_DBArtefactID", "insert into "+a.SQLArchivetablename+" (id,domain, name, url) values ($1,$2, $3, $4) ", p.ID, p.Domain, p.Name, p.URL)
 	if e != nil {
 		return e
 	}
@@ -96,7 +97,7 @@ func (a *DBArtefactID) Archive(ctx context.Context, id uint64) error {
 // Save (and use database default ID generation)
 func (a *DBArtefactID) Save(ctx context.Context, p *savepb.ArtefactID) (uint64, error) {
 	qn := "DBArtefactID_Save"
-	rows, e := a.DB.QueryContext(ctx, qn, "insert into "+a.SQLTablename+" (domain, name) values ($1, $2) returning id", p.Domain, p.Name)
+	rows, e := a.DB.QueryContext(ctx, qn, "insert into "+a.SQLTablename+" (domain, name, url) values ($1, $2, $3) returning id", p.Domain, p.Name, p.URL)
 	if e != nil {
 		return 0, a.Error(ctx, qn, e)
 	}
@@ -116,13 +117,13 @@ func (a *DBArtefactID) Save(ctx context.Context, p *savepb.ArtefactID) (uint64, 
 // Save using the ID specified
 func (a *DBArtefactID) SaveWithID(ctx context.Context, p *savepb.ArtefactID) error {
 	qn := "insert_DBArtefactID"
-	_, e := a.DB.ExecContext(ctx, qn, "insert into "+a.SQLTablename+" (id,domain, name) values ($1,$2, $3) ", p.ID, p.Domain, p.Name)
+	_, e := a.DB.ExecContext(ctx, qn, "insert into "+a.SQLTablename+" (id,domain, name, url) values ($1,$2, $3, $4) ", p.ID, p.Domain, p.Name, p.URL)
 	return a.Error(ctx, qn, e)
 }
 
 func (a *DBArtefactID) Update(ctx context.Context, p *savepb.ArtefactID) error {
 	qn := "DBArtefactID_Update"
-	_, e := a.DB.ExecContext(ctx, qn, "update "+a.SQLTablename+" set domain=$1, name=$2 where id = $3", p.Domain, p.Name, p.ID)
+	_, e := a.DB.ExecContext(ctx, qn, "update "+a.SQLTablename+" set domain=$1, name=$2, url=$3 where id = $4", p.Domain, p.Name, p.URL, p.ID)
 
 	return a.Error(ctx, qn, e)
 }
@@ -137,7 +138,7 @@ func (a *DBArtefactID) DeleteByID(ctx context.Context, p uint64) error {
 // get it by primary id
 func (a *DBArtefactID) ByID(ctx context.Context, p uint64) (*savepb.ArtefactID, error) {
 	qn := "DBArtefactID_ByID"
-	rows, e := a.DB.QueryContext(ctx, qn, "select id,domain, name from "+a.SQLTablename+" where id = $1", p)
+	rows, e := a.DB.QueryContext(ctx, qn, "select id,domain, name, url from "+a.SQLTablename+" where id = $1", p)
 	if e != nil {
 		return nil, a.Error(ctx, qn, fmt.Errorf("ByID: error querying (%s)", e))
 	}
@@ -158,7 +159,7 @@ func (a *DBArtefactID) ByID(ctx context.Context, p uint64) (*savepb.ArtefactID, 
 // get it by primary id (nil if no such ID row, but no error either)
 func (a *DBArtefactID) TryByID(ctx context.Context, p uint64) (*savepb.ArtefactID, error) {
 	qn := "DBArtefactID_TryByID"
-	rows, e := a.DB.QueryContext(ctx, qn, "select id,domain, name from "+a.SQLTablename+" where id = $1", p)
+	rows, e := a.DB.QueryContext(ctx, qn, "select id,domain, name, url from "+a.SQLTablename+" where id = $1", p)
 	if e != nil {
 		return nil, a.Error(ctx, qn, fmt.Errorf("TryByID: error querying (%s)", e))
 	}
@@ -179,7 +180,7 @@ func (a *DBArtefactID) TryByID(ctx context.Context, p uint64) (*savepb.ArtefactI
 // get all rows
 func (a *DBArtefactID) All(ctx context.Context) ([]*savepb.ArtefactID, error) {
 	qn := "DBArtefactID_all"
-	rows, e := a.DB.QueryContext(ctx, qn, "select id,domain, name from "+a.SQLTablename+" order by id")
+	rows, e := a.DB.QueryContext(ctx, qn, "select id,domain, name, url from "+a.SQLTablename+" order by id")
 	if e != nil {
 		return nil, a.Error(ctx, qn, fmt.Errorf("All: error querying (%s)", e))
 	}
@@ -198,7 +199,7 @@ func (a *DBArtefactID) All(ctx context.Context) ([]*savepb.ArtefactID, error) {
 // get all "DBArtefactID" rows with matching Domain
 func (a *DBArtefactID) ByDomain(ctx context.Context, p string) ([]*savepb.ArtefactID, error) {
 	qn := "DBArtefactID_ByDomain"
-	rows, e := a.DB.QueryContext(ctx, qn, "select id,domain, name from "+a.SQLTablename+" where domain = $1", p)
+	rows, e := a.DB.QueryContext(ctx, qn, "select id,domain, name, url from "+a.SQLTablename+" where domain = $1", p)
 	if e != nil {
 		return nil, a.Error(ctx, qn, fmt.Errorf("ByDomain: error querying (%s)", e))
 	}
@@ -213,7 +214,7 @@ func (a *DBArtefactID) ByDomain(ctx context.Context, p string) ([]*savepb.Artefa
 // the 'like' lookup
 func (a *DBArtefactID) ByLikeDomain(ctx context.Context, p string) ([]*savepb.ArtefactID, error) {
 	qn := "DBArtefactID_ByLikeDomain"
-	rows, e := a.DB.QueryContext(ctx, qn, "select id,domain, name from "+a.SQLTablename+" where domain ilike $1", p)
+	rows, e := a.DB.QueryContext(ctx, qn, "select id,domain, name, url from "+a.SQLTablename+" where domain ilike $1", p)
 	if e != nil {
 		return nil, a.Error(ctx, qn, fmt.Errorf("ByDomain: error querying (%s)", e))
 	}
@@ -228,7 +229,7 @@ func (a *DBArtefactID) ByLikeDomain(ctx context.Context, p string) ([]*savepb.Ar
 // get all "DBArtefactID" rows with matching Name
 func (a *DBArtefactID) ByName(ctx context.Context, p string) ([]*savepb.ArtefactID, error) {
 	qn := "DBArtefactID_ByName"
-	rows, e := a.DB.QueryContext(ctx, qn, "select id,domain, name from "+a.SQLTablename+" where name = $1", p)
+	rows, e := a.DB.QueryContext(ctx, qn, "select id,domain, name, url from "+a.SQLTablename+" where name = $1", p)
 	if e != nil {
 		return nil, a.Error(ctx, qn, fmt.Errorf("ByName: error querying (%s)", e))
 	}
@@ -243,7 +244,7 @@ func (a *DBArtefactID) ByName(ctx context.Context, p string) ([]*savepb.Artefact
 // the 'like' lookup
 func (a *DBArtefactID) ByLikeName(ctx context.Context, p string) ([]*savepb.ArtefactID, error) {
 	qn := "DBArtefactID_ByLikeName"
-	rows, e := a.DB.QueryContext(ctx, qn, "select id,domain, name from "+a.SQLTablename+" where name ilike $1", p)
+	rows, e := a.DB.QueryContext(ctx, qn, "select id,domain, name, url from "+a.SQLTablename+" where name ilike $1", p)
 	if e != nil {
 		return nil, a.Error(ctx, qn, fmt.Errorf("ByName: error querying (%s)", e))
 	}
@@ -251,6 +252,36 @@ func (a *DBArtefactID) ByLikeName(ctx context.Context, p string) ([]*savepb.Arte
 	l, e := a.FromRows(ctx, rows)
 	if e != nil {
 		return nil, a.Error(ctx, qn, fmt.Errorf("ByName: error scanning (%s)", e))
+	}
+	return l, nil
+}
+
+// get all "DBArtefactID" rows with matching URL
+func (a *DBArtefactID) ByURL(ctx context.Context, p string) ([]*savepb.ArtefactID, error) {
+	qn := "DBArtefactID_ByURL"
+	rows, e := a.DB.QueryContext(ctx, qn, "select id,domain, name, url from "+a.SQLTablename+" where url = $1", p)
+	if e != nil {
+		return nil, a.Error(ctx, qn, fmt.Errorf("ByURL: error querying (%s)", e))
+	}
+	defer rows.Close()
+	l, e := a.FromRows(ctx, rows)
+	if e != nil {
+		return nil, a.Error(ctx, qn, fmt.Errorf("ByURL: error scanning (%s)", e))
+	}
+	return l, nil
+}
+
+// the 'like' lookup
+func (a *DBArtefactID) ByLikeURL(ctx context.Context, p string) ([]*savepb.ArtefactID, error) {
+	qn := "DBArtefactID_ByLikeURL"
+	rows, e := a.DB.QueryContext(ctx, qn, "select id,domain, name, url from "+a.SQLTablename+" where url ilike $1", p)
+	if e != nil {
+		return nil, a.Error(ctx, qn, fmt.Errorf("ByURL: error querying (%s)", e))
+	}
+	defer rows.Close()
+	l, e := a.FromRows(ctx, rows)
+	if e != nil {
+		return nil, a.Error(ctx, qn, fmt.Errorf("ByURL: error scanning (%s)", e))
 	}
 	return l, nil
 }
@@ -276,17 +307,17 @@ func (a *DBArtefactID) Tablename() string {
 }
 
 func (a *DBArtefactID) SelectCols() string {
-	return "id,domain, name"
+	return "id,domain, name, url"
 }
 func (a *DBArtefactID) SelectColsQualified() string {
-	return "" + a.SQLTablename + ".id," + a.SQLTablename + ".domain, " + a.SQLTablename + ".name"
+	return "" + a.SQLTablename + ".id," + a.SQLTablename + ".domain, " + a.SQLTablename + ".name, " + a.SQLTablename + ".url"
 }
 
 func (a *DBArtefactID) FromRows(ctx context.Context, rows *gosql.Rows) ([]*savepb.ArtefactID, error) {
 	var res []*savepb.ArtefactID
 	for rows.Next() {
 		foo := savepb.ArtefactID{}
-		err := rows.Scan(&foo.ID, &foo.Domain, &foo.Name)
+		err := rows.Scan(&foo.ID, &foo.Domain, &foo.Name, &foo.URL)
 		if err != nil {
 			return nil, a.Error(ctx, "fromrow-scan", err)
 		}
@@ -301,16 +332,32 @@ func (a *DBArtefactID) FromRows(ctx context.Context, rows *gosql.Rows) ([]*savep
 func (a *DBArtefactID) CreateTable(ctx context.Context) error {
 	csql := []string{
 		`create sequence if not exists ` + a.SQLTablename + `_seq;`,
-		`CREATE TABLE if not exists ` + a.SQLTablename + ` (id integer primary key default nextval('` + a.SQLTablename + `_seq'),domain text not null  ,name text not null  );`,
-		`CREATE TABLE if not exists ` + a.SQLTablename + `_archive (id integer primary key default nextval('` + a.SQLTablename + `_seq'),domain text not null  ,name text not null  );`,
+		`CREATE TABLE if not exists ` + a.SQLTablename + ` (id integer primary key default nextval('` + a.SQLTablename + `_seq'),domain text not null ,name text not null ,url text not null );`,
+		`CREATE TABLE if not exists ` + a.SQLTablename + `_archive (id integer primary key default nextval('` + a.SQLTablename + `_seq'),domain text not null ,name text not null ,url text not null );`,
 		`ALTER TABLE artefactid ADD COLUMN IF NOT EXISTS domain text not null default '';`,
 		`ALTER TABLE artefactid ADD COLUMN IF NOT EXISTS name text not null default '';`,
+		`ALTER TABLE artefactid ADD COLUMN IF NOT EXISTS url text not null default '';`,
+
+		`ALTER TABLE artefactid_archive ADD COLUMN IF NOT EXISTS domain text not null default '';`,
+		`ALTER TABLE artefactid_archive ADD COLUMN IF NOT EXISTS name text not null default '';`,
+		`ALTER TABLE artefactid_archive ADD COLUMN IF NOT EXISTS url text not null default '';`,
 	}
 	for i, c := range csql {
 		_, e := a.DB.ExecContext(ctx, fmt.Sprintf("create_"+a.SQLTablename+"_%d", i), c)
 		if e != nil {
 			return e
 		}
+	}
+
+	// these are optional, expected to fail
+	csql = []string{
+		// Indices:
+
+		// Foreign keys:
+
+	}
+	for i, c := range csql {
+		a.DB.ExecContextQuiet(ctx, fmt.Sprintf("create_"+a.SQLTablename+"_%d", i), c)
 	}
 	return nil
 }

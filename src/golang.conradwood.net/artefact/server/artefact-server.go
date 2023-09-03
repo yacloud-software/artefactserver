@@ -209,8 +209,18 @@ func (e *artefactServer) List(ctx context.Context, req *common.Void) (*pb.Artefa
 	})
 	return resp, nil
 }
+
+// given an artefactid, get the metadata
 func (e *artefactServer) MetaByID(ctx context.Context, req *pb.ID) (*pb.ArtefactMeta, error) {
-	return &pb.ArtefactMeta{ID: req.ID}, nil
+	af, err := db.DefaultDBArtefactID().ByID(ctx, req.ID)
+	if err != nil {
+		return nil, err
+	}
+	am, err := create_artefact_meta(ctx, af)
+	if err != nil {
+		return nil, err
+	}
+	return am, nil
 }
 func (e *artefactServer) GetContents(ctx context.Context, req *pb.Reference) (*pb.Contents, error) {
 	if *use_v2 && strings.HasPrefix(req.Reference, "/") {
