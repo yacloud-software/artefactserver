@@ -63,12 +63,6 @@ message SetAccessRequest {
   bool Grant = 3;       // if true: allow access, otherwise deny
 }
 
-// for database, probably should not use that anymore
-message ArtefactID {
-  uint64 ID = 1;
-  string Domain = 2;
-  string Name = 3;
-}
 
 message FindRequest {
   // only return results containing this
@@ -128,10 +122,30 @@ message ID {
   uint64 ID=1;
 }
 
+// for database, stores meta information about artefacts
+message ArtefactID {
+  uint64 ID = 1;
+  string Domain = 2;
+  string Name = 3;
+  string URL=4;
+}
+
 // metadata about an artefact
 message ArtefactMeta {
   uint64 ID=1;
 }
+
+message CreateArtefactRequest {
+  string OrganisationID=1; // artefact(names) are only unique in a given organisation
+  string ArtefactName=2;
+  string BuildRepoDomain=3; // which buildrepo this artefact lives on
+  string GitURL=4; // may be "" (empty string), but this can help find the source of the artefact for users and tools
+}
+message CreateArtefactResponse {
+  bool Created=1;
+  ArtefactMeta Meta=2;
+}
+
 // provides access to artefacts
 service ArtefactService {
   // list *latest* version of all artefacts (for this user)
@@ -166,4 +180,6 @@ service ArtefactService {
   rpc GetArtefactIDForRepo(ID) returns (ArtefactID);
   // get artefact metadata by artefactid
   rpc MetaByID(ID) returns (ArtefactMeta);
+  // create artefact if required. if it exists already it will not be recreated. URL may be added or updated
+  rpc CreateArtefactIfRequired(CreateArtefactRequest) returns (CreateArtefactResponse);
 }
