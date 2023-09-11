@@ -24,9 +24,9 @@ import (
 )
 
 var (
-	use_v2      = flag.Bool("use_v2", true, "use version2")
-	debug       = flag.Bool("debug", false, "debug mode")
-	bdomain     = flag.String("buildrepo_domain", "", "in order to maintain unique ids each buildrepo needs a unique prefix")
+	use_v2 = flag.Bool("use_v2", true, "use version2")
+	debug  = flag.Bool("debug", false, "debug mode")
+	//	bdomain     = flag.String("buildrepo_domain", "", "in order to maintain unique ids each buildrepo needs a unique prefix")
 	port        = flag.Int("port", 10000, "The grpc server port")
 	idstore     *db.DBArtefactID
 	idcache     = cache.NewResolvingCache("idcache", time.Duration(4)*time.Hour, 10000)
@@ -42,10 +42,6 @@ func main() {
 	fmt.Printf("Starting ArtefactServiceServer...\n")
 	var err error
 	idstore = db.DefaultDBArtefactID()
-	if *bdomain == "" {
-		fmt.Printf("Missing buildrepo_domain\n")
-		os.Exit(10)
-	}
 
 	fmt.Printf("Starting buildrepo connections...\n")
 	brepo = buildrepo.CreateBuildrepo()
@@ -164,11 +160,7 @@ func (e *artefactServer) List(ctx context.Context, req *common.Void) (*pb.Artefa
 		go func(e *buildrepo.RepoEntry) {
 			defer wg.Done()
 
-			d := e.Domain
-			if d == "" {
-				d = *bdomain
-			}
-			rid, xerr := requestAccess(ctx, e.Name, d)
+			rid, xerr := requestAccess(ctx, e.Name, e.Domain)
 			if xerr != nil {
 				return
 			}

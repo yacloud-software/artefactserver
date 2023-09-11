@@ -43,7 +43,9 @@ func is_privileged_service(ctx context.Context) bool {
 }
 
 func requestAccess(ctx context.Context, artefactName string, domain string) (uint64, error) {
-
+	if domain == "" {
+		return 0, fmt.Errorf("access to %s without domain denied", artefactName)
+	}
 	if is_privileged_service(ctx) {
 		rid, err := artefactToID(artefactName, domain)
 		return rid, err

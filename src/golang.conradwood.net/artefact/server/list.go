@@ -35,11 +35,7 @@ func (e *artefactServer) List2(ctx context.Context, req *common.Void) (*pb.Artef
 		go func(e *buildrepo.RepoEntry) {
 			defer wg.Done()
 
-			d := e.Domain
-			if d == "" {
-				d = *bdomain
-			}
-			rid, xerr := requestAccess(ctx, e.Name, d)
+			rid, xerr := requestAccess(ctx, e.Name, e.Domain)
 			if xerr != nil {
 				return
 			}

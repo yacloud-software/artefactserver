@@ -5,6 +5,8 @@ import (
 	"flag"
 	"fmt"
 	br "golang.conradwood.net/apis/buildrepo"
+	"golang.conradwood.net/apis/common"
+	"golang.conradwood.net/go-easyops/authremote"
 	"golang.conradwood.net/go-easyops/client"
 	"io"
 	"strings"
@@ -15,32 +17,35 @@ import (
 * consolidate multiple repositories
  */
 var (
-	user_buildrepos    = flag.String("buildrepos", "", "if set, a comma delimited mapping with buildrepos, e.g. domain:foo-host.localdomain,otherdomain:bar-host.localdomain")
-	default_buildrepos = map[string]string{
-		"conradwood.net": "buildrepo.vpn.conrad.localdomain",
-		"singingcat.net": "scbuildrepo.singingcat.localdomain",
-	}
+	user_buildrepos    = flag.String("buildrepos", "", "if set, a comma delimited mapping with buildrepos addresses")
+	default_buildrepos = []string{"buildrepo.vpn.conrad.localdomain", "scbuildrepo.singingcat.localdomain"}
+
 	clients = make(map[string]br.BuildRepoManagerClient)
 	debug   = flag.Bool("debug_repos", false, "debug repo code")
+	br_meta = make(map[string]*build_repo_meta)
 )
 
-func get_build_repo_map() map[string]string {
+type build_repo_meta struct {
+	Address string
+	Domain  string
+}
+
+func get_list_of_buildrepos() []string {
+	var res []string
 	if *user_buildrepos == "" {
 		return default_buildrepos
 	}
-	ma := strings.Split(*user_buildrepos, ",")
-	res := make(map[string]string)
-	for _, m := range ma {
-		l := strings.SplitN(m, ":", 2)
-		if len(l) != 2 {
-			panic(fmt.Sprintf("invalid buildrepo mapping: %s", m))
-		}
-		res[l[0]] = l[1]
+	for _, brepoadr := range strings.Split(*user_buildrepos, ",") {
+		brepoadr = strings.Trim(brepoadr, " ")
+		res = append(res, brepoadr)
 	}
 	return res
 }
+func get_build_repo_map() map[string]*build_repo_meta {
+	return br_meta
+}
 func CreateBuildrepo() *BuildRepo {
-	m := get_build_repo_map()
+	m := get_list_of_buildrepos()
 	debugf("Creating buildrepo clients for %d repos\n", len(m))
 	if len(m) == 0 {
 		panic("need at least one buildrepo")
@@ -52,7 +57,16 @@ func CreateBuildrepo() *BuildRepo {
 		if err != nil {
 			panic(fmt.Sprintf("Failed to connect to buildrepo @ %s: %s", v, err))
 		}
-		clients[v] = br.NewBuildRepoManagerClient(c)
+		brm := br.NewBuildRepoManagerClient(c)
+		clients[v] = brm
+		ctx := authremote.Context()
+		mi, err := brm.GetManagerInfo(ctx, &common.Void{})
+		if err != nil {
+			fmt.Printf("failed to get manager info from buildrepo %s: %s\n", adr, err)
+		} else {
+			fmt.Printf("buildrepo at %s serves domain %s\n", v, mi.Domain)
+			br_meta[v] = &build_repo_meta{Address: v, Domain: mi.Domain}
+		}
 		debugf("Connected to %s\n", adr)
 	}
 	res := &BuildRepo{}
@@ -213,7 +227,7 @@ func (b *BuildRepo) ListVersions(ctx context.Context, domain string, glvr *br.Li
 func GetDefaultBuildRepoForDomain(domain string) string {
 	for k, v := range get_build_repo_map() {
 		if k == domain {
-			return v
+			return v.Address
 		}
 	}
 	return ""
@@ -221,7 +235,7 @@ func GetDefaultBuildRepoForDomain(domain string) string {
 
 func GetDefaultDomainForBuildRepo(target string) string {
 	for k, v := range get_build_repo_map() {
-		if v == target {
+		if v.Domain == target {
 			return k
 		}
 	}
