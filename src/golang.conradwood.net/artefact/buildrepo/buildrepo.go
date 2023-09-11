@@ -154,6 +154,7 @@ func (b *BuildRepo) GetRepositoryMeta(ctx context.Context, domain string, blvr *
 	if domain == "" {
 		return nil, fmt.Errorf("missing domain for artefact %s", blvr.Path)
 	}
+
 	t := GetDefaultBuildRepoForDomain(domain)
 	c := clients[t]
 	if c == nil {
