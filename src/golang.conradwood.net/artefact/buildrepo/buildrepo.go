@@ -105,7 +105,7 @@ func (b *BuildRepo) ListRepos(ctx context.Context) (*RepoList, error) {
 				// if so use a default.
 				// TODO: update buildrepo server
 				if e.Domain == "" {
-					d := GetDefaultDomainForBuildRepo(t)
+					d := GetDomainForBuildRepo(t)
 					fmt.Printf("WARNING: Buildrepo server %s did not provide domain for \"%s\", using \"%s\"\n", t, e.Name, d)
 					e.Domain = d
 				}
@@ -127,10 +127,10 @@ func (b *BuildRepo) ListFiles(ctx context.Context, domain string, blvr *br.ListF
 	if domain == "" {
 		return nil, "", fmt.Errorf("missing domain for artefact %s", blvr.Repository)
 	}
-	t := GetDefaultBuildRepoForDomain(domain)
+	t := GetBuildRepoForDomain(domain)
 	c := clients[t]
 	if c == nil {
-		return nil, "", fmt.Errorf("no buildrepo server serving %s in domain %s", blvr.Repository, domain)
+		return nil, "", fmt.Errorf("(1) no buildrepo server serving %s in domain %s", blvr.Repository, domain)
 	}
 	lfr, err := c.ListFiles(ctx, blvr)
 	return lfr, t, err
@@ -140,10 +140,10 @@ func (b *BuildRepo) DoesFileExist(ctx context.Context, domain string, blvr *br.G
 	if domain == "" {
 		return nil, fmt.Errorf("missing domain for artefact %s", blvr.File.Repository)
 	}
-	t := GetDefaultBuildRepoForDomain(domain)
+	t := GetBuildRepoForDomain(domain)
 	c := clients[t]
 	if c == nil {
-		return nil, fmt.Errorf("no buildrepo server serving %s in domain %s", blvr.File.Repository, domain)
+		return nil, fmt.Errorf("(2) no buildrepo server serving %s in domain %s", blvr.File.Repository, domain)
 	}
 	res, err := c.DoesFileExist(ctx, blvr)
 	return res, err
@@ -155,10 +155,10 @@ func (b *BuildRepo) GetRepositoryMeta(ctx context.Context, domain string, blvr *
 		return nil, fmt.Errorf("missing domain for artefact %s", blvr.Path)
 	}
 
-	t := GetDefaultBuildRepoForDomain(domain)
+	t := GetBuildRepoForDomain(domain)
 	c := clients[t]
 	if c == nil {
-		return nil, fmt.Errorf("no buildrepo server serving %s in domain %s", blvr.Path, domain)
+		return nil, fmt.Errorf("(3) no buildrepo server serving %s in domain %s", blvr.Path, domain)
 	}
 	res, err := c.GetRepositoryMeta(ctx, blvr)
 	return res, err
@@ -170,10 +170,10 @@ func (b *BuildRepo) GetFile(ctx context.Context, domain string, blvr *br.GetFile
 	if domain == "" {
 		return fmt.Errorf("missing domain for artefact %s", blvr.File.Repository)
 	}
-	t := GetDefaultBuildRepoForDomain(domain)
+	t := GetBuildRepoForDomain(domain)
 	c := clients[t]
 	if c == nil {
-		return fmt.Errorf("no buildrepo server serving %s in domain %s", blvr.File.Repository, domain)
+		return fmt.Errorf("(4) no buildrepo server serving %s in domain %s", blvr.File.Repository, domain)
 	}
 	stream, err := c.GetFileAsStream(ctx, blvr)
 	if err != nil {
@@ -199,10 +199,10 @@ func (b *BuildRepo) GetLatestVersion(ctx context.Context, domain string, glvr *b
 	if domain == "" {
 		return nil, fmt.Errorf("missing domain for artefact %s", glvr.Repository)
 	}
-	t := GetDefaultBuildRepoForDomain(domain)
+	t := GetBuildRepoForDomain(domain)
 	c := clients[t]
 	if c == nil {
-		return nil, fmt.Errorf("no buildrepo server serving %s in domain %s", glvr.Repository, domain)
+		return nil, fmt.Errorf("(5) no buildrepo server serving %s in domain %s", glvr.Repository, domain)
 	}
 	v, err := c.GetLatestVersion(ctx, glvr)
 	if err != nil {
@@ -214,10 +214,10 @@ func (b *BuildRepo) ListVersions(ctx context.Context, domain string, glvr *br.Li
 	if domain == "" {
 		return nil, fmt.Errorf("missing domain for artefact %s", glvr.Repository)
 	}
-	t := GetDefaultBuildRepoForDomain(domain)
+	t := GetBuildRepoForDomain(domain)
 	c := clients[t]
 	if c == nil {
-		return nil, fmt.Errorf("no buildrepo server serving %s in domain %s", glvr.Repository, domain)
+		return nil, fmt.Errorf("(6) no buildrepo server serving %s in domain %s", glvr.Repository, domain)
 	}
 	v, err := c.ListVersions(ctx, glvr)
 	if err != nil {
@@ -225,26 +225,30 @@ func (b *BuildRepo) ListVersions(ctx context.Context, domain string, glvr *br.Li
 	}
 	return v, nil
 }
-func GetDefaultBuildRepoForDomain(domain string) string {
+func GetBuildRepoForDomain(domain string) string {
 	for k, v := range get_build_repo_map() {
-		if k == domain {
-			return v.Address
+		if v.Domain == domain {
+			return k
 		}
+	}
+	fmt.Printf("WARNING: no buildrepo for domain \"%s\"\n", domain)
+	for k, v := range get_build_repo_map() {
+		fmt.Printf("Address %s serves %s\n", k, v)
 	}
 	return ""
 }
 
-func GetDefaultDomainForBuildRepo(target string) string {
+func GetDomainForBuildRepo(target string) string {
 	for k, v := range get_build_repo_map() {
-		if v.Domain == target {
-			return k
+		if k == target {
+			return v.Domain
 		}
 	}
 	return ""
 }
 
 func (b *BuildRepo) GetBuildRepoManagerClient(repo string, domain string) br.BuildRepoManagerClient {
-	a := GetDefaultBuildRepoForDomain(domain)
+	a := GetBuildRepoForDomain(domain)
 	if a == "" {
 		return nil
 	}
