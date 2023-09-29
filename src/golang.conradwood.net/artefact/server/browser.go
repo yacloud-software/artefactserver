@@ -25,6 +25,8 @@ func (e *artefactServer) GetArtefactBuilds(ctx context.Context, req *pb.Artefact
 	if xerr != nil {
 		return nil, xerr
 	}
+	debugf("Getting builds for %s in domain %s\n", af.Name, af.Domain)
+
 	lvr, err := brepo.ListVersions(ctx, af.Domain, &br.ListVersionsRequest{
 		Repository: af.Name,
 		Branch:     "master",
@@ -43,6 +45,7 @@ func (e *artefactServer) GetArtefactBuilds(ctx context.Context, req *pb.Artefact
 		}
 		bl.Builds = append(bl.Builds, b)
 	}
+	debugf("Returning %d builds for %s in domain %s\n", len(bl.Builds), af.Name, af.Domain)
 	return bl, nil
 }
 func (e *artefactServer) GetDirListing(ctx context.Context, req *pb.DirListRequest) (*pb.DirListing, error) {
@@ -50,9 +53,8 @@ func (e *artefactServer) GetDirListing(ctx context.Context, req *pb.DirListReque
 	if err != nil {
 		return nil, err
 	}
-	if *debug {
-		fmt.Printf("Getting Dir \"%s\" for artefact #%d (%s)\n", req.Dir, req.ArtefactID, af.Name)
-	}
+	fmt.Printf("Getting Dir \"%s\" for artefact #%d (%s)\n", req.Dir, req.ArtefactID, af.Name)
+
 	_, xerr := requestAccess(ctx, af.Name, af.Domain)
 	if xerr != nil {
 		return nil, xerr
@@ -74,15 +76,12 @@ func (e *artefactServer) GetDirListing(ctx context.Context, req *pb.DirListReque
 			Name: af.Name,
 		},
 	}
-	if *debug {
-		fmt.Printf("Dir \"%s\" in artefact #%d (%s) got %d entries\n", res.Path, res.ArtefactInfo.ID, res.ArtefactInfo.Name, len(lfr.Entries))
-	}
+	debugf("Dir \"%s\" in artefact #%d (%s) got %d entries\n", res.Path, res.ArtefactInfo.ID, res.ArtefactInfo.Name, len(lfr.Entries))
+
 	dir := req.Dir
 	for _, e := range lfr.Entries {
 		if e.Dir != dir {
-			if *debug {
-				fmt.Printf("Entry \"%s\" does not match dir \"%s\" (%s)\n", e.Name, dir, e.Dir)
-			}
+			debugf("Entry \"%s\" does not match dir \"%s\" (%s)\n", e.Name, dir, e.Dir)
 			continue
 		}
 		if e.Type == 2 {
