@@ -8,7 +8,7 @@ require (
 	golang.conradwood.net/apis/common v1.1.2625
 	golang.conradwood.net/apis/h2gproxy v1.1.2625
 	golang.conradwood.net/apis/objectauth v1.1.2625
-	golang.conradwood.net/go-easyops v0.1.20370
+	golang.conradwood.net/go-easyops v0.1.20683
 	google.golang.org/grpc v1.58.0
 )
 
