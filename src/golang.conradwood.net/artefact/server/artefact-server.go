@@ -46,7 +46,7 @@ func main() {
 	fmt.Printf("Starting buildrepo connections...\n")
 	brepo = buildrepo.CreateBuildrepo()
 	sd := server.NewServerDef()
-	sd.Port = *port
+	sd.SetPort(*port)
 	sd.Register = server.Register(
 		func(server *grpc.Server) error {
 			e := new(artefactServer)
