@@ -96,3 +96,4 @@ func requestAccess(ctx context.Context, artefactName string, domain string) (uin
 	perm_cache.Put(key, &perm_cache_entry{artefactid: rid, allowed: false})
 	return 0, errors.AccessDenied(ctx, "(2) access to artefact %s (#%d) denied", artefactName, rid)
 }
+

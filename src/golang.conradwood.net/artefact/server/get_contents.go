@@ -104,3 +104,4 @@ func isInDir(refdir string, path string) bool {
 	//fmt.Printf("Skipped \"%s\", because \"%s\",not equal to \"%s\"\n", path, p, refdir)
 	return false
 }
+

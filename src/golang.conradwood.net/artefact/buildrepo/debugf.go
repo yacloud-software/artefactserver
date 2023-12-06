@@ -11,3 +11,4 @@ func debugf(format string, args ...interface{}) {
 	s := fmt.Sprintf(format, args...)
 	fmt.Print("[buildrepo] " + s)
 }
+

@@ -174,3 +174,4 @@ func (lr *LinkReference) Path() string {
 	}
 	return l
 }
+

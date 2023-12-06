@@ -97,3 +97,4 @@ func (e *artefactServer) GetRepoForArtefact(ctx context.Context, id *pb.ID) (*pb
 	}
 	return nil, errors.Unavailable(ctx, "buildrepo information unavailable")
 }
+

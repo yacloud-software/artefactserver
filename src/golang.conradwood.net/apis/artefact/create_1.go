@@ -66,3 +66,4 @@ func ArtefactServiceLookupID() string { return "artefact.ArtefactService" } // r
 func init() {
    client.RegisterDependency("artefact.ArtefactService")
 }
+

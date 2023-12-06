@@ -9,3 +9,4 @@ import (
 func (e *artefactServer) SetAccess(ctx context.Context, req *pb.SetAccessRequest) (*common.Void, error) {
 	return &common.Void{}, nil
 }
+

@@ -47,13 +47,13 @@ func main() {
 	brepo = buildrepo.CreateBuildrepo()
 	sd := server.NewServerDef()
 	sd.SetPort(*port)
-	sd.Register = server.Register(
+	sd.SetRegister(server.Register(
 		func(server *grpc.Server) error {
 			e := new(artefactServer)
 			pb.RegisterArtefactServiceServer(server, e)
 			return nil
 		},
-	)
+	))
 	err = server.ServerStartup(sd)
 	utils.Bail("Unable to start server", err)
 	os.Exit(0)
@@ -479,3 +479,4 @@ func (cf *ContentFiller) fillContent(af *pb.Contents) {
 	}
 	createArtefactReference(af)
 }
+

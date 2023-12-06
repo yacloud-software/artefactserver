@@ -144,3 +144,4 @@ func (r *reference) Branch() string {
 func (r *reference) Version() uint64 {
 	return r.resolvedVersion
 }
+
