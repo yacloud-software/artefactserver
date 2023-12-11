@@ -10,3 +10,4 @@ func (e *artefactServer) SetAccess(ctx context.Context, req *pb.SetAccessRequest
 	return &common.Void{}, nil
 }
 
+
