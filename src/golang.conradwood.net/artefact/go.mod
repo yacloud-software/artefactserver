@@ -29,6 +29,7 @@ require (
 	golang.conradwood.net/apis/echoservice v1.1.2643 // indirect
 	golang.conradwood.net/apis/errorlogger v1.1.2643 // indirect
 	golang.conradwood.net/apis/framework v1.1.2643 // indirect
+	golang.conradwood.net/apis/gitserver v1.1.2795 // indirect
 	golang.conradwood.net/apis/goeasyops v1.1.2793 // indirect
 	golang.conradwood.net/apis/objectstore v1.1.2643 // indirect
 	golang.conradwood.net/apis/registry v1.1.2643 // indirect

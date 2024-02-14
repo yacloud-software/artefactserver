@@ -42,6 +42,8 @@ golang.conradwood.net/apis/errorlogger v1.1.2643 h1:V5725nLUNi8wrtr4hGhBKyPjjr57
 golang.conradwood.net/apis/errorlogger v1.1.2643/go.mod h1:dOfOk5TK4qeGgoUfp+dSXGF7evtkzVrcUT0F9Xi97R8=
 golang.conradwood.net/apis/framework v1.1.2643 h1:jWYzZfkTkHEJq8+TQQkE8WxG5DngndbHurtlWz+w/LU=
 golang.conradwood.net/apis/framework v1.1.2643/go.mod h1:FP2vJJd3vggfp6gnl+6qlxuyNC4DMmLFhJOx8kG60E4=
+golang.conradwood.net/apis/gitserver v1.1.2795 h1:0ZOejNDnUzqDYmDkSPdj/e0gprIHX3vVXiREVXt41UM=
+golang.conradwood.net/apis/gitserver v1.1.2795/go.mod h1:7j/Od2CaNO+keLO7437NoTniHpi4wcYrhGDCeNbG7bk=
 golang.conradwood.net/apis/goeasyops v1.1.2793 h1:UhzYo7NMNGfMuruXD+zmW2xxD0cmasHPUCqFU3g100k=
 golang.conradwood.net/apis/goeasyops v1.1.2793/go.mod h1:K62a3OkwrqT84Y6S9oozoKPCELQjj715lClZh6b0uhs=
 golang.conradwood.net/apis/h2gproxy v1.1.2643 h1:lteiW0J/piovcOLjWZgQQnwmfQsgtRmN7jBlB8AmbuE=
