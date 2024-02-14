@@ -145,6 +145,10 @@ message CreateArtefactResponse {
   bool Created=1;
   ArtefactMeta Meta=2;
 }
+message LatestBuild {
+  uint64 BuildID=1;
+  uint32 UnixTimestamp=2;
+}
 
 // provides access to artefacts
 service ArtefactService {
@@ -182,4 +186,5 @@ service ArtefactService {
   rpc MetaByID(ID) returns (ArtefactMeta);
   // create artefact if required. if it exists already it will not be recreated. URL may be added or updated
   rpc CreateArtefactIfRequired(CreateArtefactRequest) returns (CreateArtefactResponse);
+  rpc LatestBuildForGoEasyops(common.Void) returns (LatestBuild);
 }
