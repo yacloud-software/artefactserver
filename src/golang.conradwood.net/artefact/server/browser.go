@@ -146,6 +146,7 @@ func (e *artefactServer) DoesFileExist(ctx context.Context, req *pb.FileRequest)
 		Exists: fei.Exists,
 		Size:   fei.Size,
 	}
+	fmt.Printf("file %s@%d exists? (%v)\n", req.Filename, req.Build, res.Exists)
 	return res, nil
 }
 
@@ -161,7 +162,3 @@ func (sw *serverwriter) Write(buf []byte) (int, error) {
 	}
 	return len(buf), nil
 }
-
-
-
-
