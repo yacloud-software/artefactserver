@@ -6,7 +6,7 @@ require (
 	github.com/golang/protobuf v1.5.4
 	golang.conradwood.net/apis/common v1.1.2902
 	golang.conradwood.net/apis/h2gproxy v1.1.2526
-	golang.conradwood.net/go-easyops v0.1.27320
+	golang.conradwood.net/go-easyops v0.1.27487
 	golang.org/x/net v0.24.0
 	google.golang.org/grpc v1.63.2
 )

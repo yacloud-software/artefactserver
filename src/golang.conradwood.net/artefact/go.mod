@@ -9,7 +9,7 @@ require (
 	golang.conradwood.net/apis/gitserver v1.1.2812
 	golang.conradwood.net/apis/h2gproxy v1.1.2812
 	golang.conradwood.net/apis/objectauth v1.1.2812
-	golang.conradwood.net/go-easyops v0.1.27320
+	golang.conradwood.net/go-easyops v0.1.27487
 	google.golang.org/grpc v1.63.2
 )
 
