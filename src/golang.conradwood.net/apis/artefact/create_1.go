@@ -4,6 +4,7 @@
 */
 
 /* geninfo:
+   rendererv : 2
    filename  : golang.conradwood.net/apis/artefact/artefact.proto
    gopackage : golang.conradwood.net/apis/artefact
    importname: ai_0
