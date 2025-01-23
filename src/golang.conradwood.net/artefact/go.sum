@@ -78,6 +78,8 @@ golang.conradwood.net/apis/framework v1.1.3576 h1:Ns7jzWFx7pECzeQxQrNoiKZADRQfbm
 golang.conradwood.net/apis/framework v1.1.3576/go.mod h1:o7C2oqS5uyATP8ykCDa96+KajUXUd3EvUDX5GSDeuQE=
 golang.conradwood.net/apis/gitserver v1.1.3576 h1:GMDJfwkm4em1ZS1FkB4V23lQAcCsWNSuI4LsrMAqI28=
 golang.conradwood.net/apis/gitserver v1.1.3576/go.mod h1:FSl9Y1iTl+jsu7wnIhjdgvwB/fGdZF8y7Ol0Qf0pbFY=
+golang.conradwood.net/apis/gitserver v1.1.3583 h1:bjUWRah6v+YqbwXWw6+Yk8NS/vazqNzuHR8In5kv5p8=
+golang.conradwood.net/apis/gitserver v1.1.3583/go.mod h1:f9+3Rn7977S1x98n7D4aotRXGgtxmtTMg+Iq0reGGb0=
 golang.conradwood.net/apis/goeasyops v1.1.3576 h1:zMTa8ZCCgKuX1h3Mt4f305tV8gS6akjXcLlvCOBFwg4=
 golang.conradwood.net/apis/goeasyops v1.1.3576/go.mod h1:qHxUREhTKfMnSiCp2voqK5tbuWHlFL8KcAB/pFqL/hI=
 golang.conradwood.net/apis/grafanadata v1.1.3576 h1:I6R8PVNGG6RMIGHawuCnqLRj2otXMi9Hbnr/t1Liw9M=

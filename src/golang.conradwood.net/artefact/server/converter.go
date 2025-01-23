@@ -3,13 +3,16 @@ package main
 import (
 	"context"
 	"fmt"
+	"time"
+
 	pb "golang.conradwood.net/apis/artefact"
 	br "golang.conradwood.net/apis/buildrepo"
+	"golang.conradwood.net/apis/gitserver"
+	"golang.conradwood.net/artefact/db"
 	"golang.conradwood.net/go-easyops/auth"
 	"golang.conradwood.net/go-easyops/cache"
 	"golang.conradwood.net/go-easyops/errors"
 	"golang.conradwood.net/go-easyops/utils"
-	"time"
 )
 
 var (
@@ -28,7 +31,13 @@ func (e *artefactServer) GetArtefactIDForRepo(ctx context.Context, id *pb.ID) (*
 	}
 	return e.GetArtefactByID(ctx, id)
 }
+
+// return the artefactid from a repoid
 func (e *artefactServer) GetArtefactForRepo(ctx context.Context, id *pb.ID) (*pb.ID, error) {
+	rafid, err := try_resolve_repoid_by_url(ctx, id)
+	if err == nil {
+		return rafid, nil
+	}
 	debugf("getting artefact for repo %d\n", id.ID)
 	repos, err := brepo.ListRepos(ctx)
 	if err != nil {
@@ -98,6 +107,36 @@ func (e *artefactServer) GetRepoForArtefact(ctx context.Context, id *pb.ID) (*pb
 	return nil, errors.Unavailable(ctx, "buildrepo information unavailable")
 }
 
-
-
-
+func try_resolve_repoid_by_url(ctx context.Context, id *pb.ID) (*pb.ID, error) {
+	git_repo, err := gitserver.GetGIT2Client().RepoByID(ctx, &gitserver.ByIDRequest{ID: id.ID})
+	if err != nil {
+		return nil, err
+	}
+	var afid *pb.ArtefactID
+	for _, url := range git_repo.URLs {
+		u := "https://" + url.Host + "/git/" + url.Path
+		fmt.Printf("GitRepo URL: %s\n", u)
+		q := db.NewQuery()
+		q.AddEqual("url", u)
+		afids, err := db.DefaultDBArtefactID().ByDBQuery(ctx, q)
+		if err != nil {
+			return nil, err
+		}
+		for _, af := range afids {
+			host := "git." + af.Domain
+			if host != url.Host {
+				continue
+			}
+			fmt.Printf("Possible Match: #%d %s %s %s\n", af.ID, af.Domain, af.Name, af.URL)
+			if afid != nil && afid.ID != af.ID {
+				return nil, errors.Errorf("Multiple matches")
+			}
+			afid = af
+		}
+	}
+	if afid != nil {
+		fmt.Printf("Using new style lookup to return artefactid #%d for repo #%d\n", id.ID, afid.ID)
+		return &pb.ID{ID: afid.ID}, nil
+	}
+	return nil, errors.Errorf("cannot resolve id yet")
+}

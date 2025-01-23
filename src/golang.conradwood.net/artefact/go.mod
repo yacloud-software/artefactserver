@@ -8,7 +8,7 @@ require (
 	golang.conradwood.net/apis/artefact v1.1.1702
 	golang.conradwood.net/apis/buildrepo v1.1.3576
 	golang.conradwood.net/apis/common v1.1.3576
-	golang.conradwood.net/apis/gitserver v1.1.3576
+	golang.conradwood.net/apis/gitserver v1.1.3583
 	golang.conradwood.net/apis/h2gproxy v1.1.3576
 	golang.conradwood.net/apis/objectauth v1.1.3576
 	golang.conradwood.net/go-easyops v0.1.32768
