@@ -4,7 +4,7 @@
 */
 
 /* geninfo:
-   filename  : protos/golang.conradwood.net/apis/artefact/artefact.proto
+   filename  : golang.conradwood.net/apis/artefact/artefact.proto
    gopackage : golang.conradwood.net/apis/artefact
    importname: ai_0
    clientfunc: GetArtefactService
