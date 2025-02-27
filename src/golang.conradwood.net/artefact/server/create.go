@@ -78,6 +78,7 @@ func create_artefact_meta(ctx context.Context, af *pb.ArtefactID) (*pb.ArtefactM
 	ridp, err := afs.GetRepoForArtefact(ctx, &pb.ID{ID: af.ID})
 	if err != nil {
 		fmt.Printf("Got no repo for artefact id #%d\n", af.ID)
+		ridp = &pb.ID{}
 	} else {
 		repoid = ridp.ID
 		lb, err = get_latest_build(ctx, repoid)
