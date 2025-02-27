@@ -131,7 +131,9 @@ message ArtefactID {
 
 // metadata about an artefact
 message ArtefactMeta {
-  uint64 ID=1;
+  uint64 ID=1; // artefactid
+  uint64 RepositoryID=2;
+  LatestBuild LatestBuild=3;
 }
 
 message CreateArtefactRequest {
