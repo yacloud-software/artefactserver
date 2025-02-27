@@ -5,9 +5,9 @@ go 1.22.2
 require (
 	golang.conradwood.net/apis/artefact v1.1.1702
 	golang.conradwood.net/apis/buildrepo v1.1.3576
-	golang.conradwood.net/apis/common v1.1.3682
+	golang.conradwood.net/apis/common v1.1.3696
 	golang.conradwood.net/apis/gitserver v1.1.3583
-	golang.conradwood.net/apis/h2gproxy v1.1.3625
+	golang.conradwood.net/apis/h2gproxy v1.1.3696
 	golang.conradwood.net/apis/objectauth v1.1.3576
 	golang.conradwood.net/go-easyops v0.1.34261
 	google.golang.org/grpc v1.70.0

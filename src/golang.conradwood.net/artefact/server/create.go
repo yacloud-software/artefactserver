@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+
 	pb "golang.conradwood.net/apis/artefact"
 	"golang.conradwood.net/artefact/db"
 	"golang.conradwood.net/go-easyops/errors"
@@ -71,10 +72,23 @@ func (a *artefactServer) CreateArtefactIfRequired(ctx context.Context, req *pb.C
 	return res, nil
 }
 func create_artefact_meta(ctx context.Context, af *pb.ArtefactID) (*pb.ArtefactMeta, error) {
-	am := &pb.ArtefactMeta{ID: af.ID}
+	var lb *pb.LatestBuild
+	afs := &artefactServer{}
+	repoid := uint64(0)
+	ridp, err := afs.GetRepoForArtefact(ctx, &pb.ID{ID: af.ID})
+	if err != nil {
+		fmt.Printf("Got no repo for artefact id #%d\n", af.ID)
+	} else {
+		repoid = ridp.ID
+		lb, err = get_latest_build(ctx, repoid)
+		if err != nil {
+			fmt.Printf("Got no latest build for artefact: %s\n", errors.ErrorString(err))
+		}
+	}
+	am := &pb.ArtefactMeta{
+		ID:           af.ID,
+		RepositoryID: ridp.ID,
+		LatestBuild:  lb,
+	}
 	return am, nil
 }
-
-
-
-
