@@ -4,11 +4,12 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"time"
+
 	"golang.conradwood.net/apis/objectauth"
 	"golang.conradwood.net/go-easyops/auth"
 	"golang.conradwood.net/go-easyops/cache"
 	"golang.conradwood.net/go-easyops/errors"
-	"time"
 )
 
 var (
@@ -46,6 +47,17 @@ func requestAccess(ctx context.Context, artefactName string, domain string) (uin
 	if domain == "" {
 		return 0, fmt.Errorf("access to %s without domain denied", artefactName)
 	}
+	svc := auth.GetService(ctx)
+	if svc != nil {
+		aar := &objectauth.AllAccessRequest{ObjectType: objectauth.OBJECTTYPE_Artefact, ServiceID: svc.ID}
+		ar, err := objectauth.GetObjectAuthClient().AllowAllServiceAccess(ctx, aar)
+		if err == nil {
+			if ar.ReadAccess {
+				rid, err := artefactToID(artefactName, domain)
+				return rid, err
+			}
+		}
+	}
 	if is_privileged_service(ctx) {
 		rid, err := artefactToID(artefactName, domain)
 		return rid, err
@@ -67,7 +79,7 @@ func requestAccess(ctx context.Context, artefactName string, domain string) (uin
 	if *always_allow_root && auth.IsRoot(ctx) {
 		return rid, nil
 	}
-	svc := auth.GetService(ctx)
+
 	if svc != nil && svc.ID == auth.GetServiceIDByName("repobuilder.RepoBuilder") {
 		return rid, nil
 	}
@@ -96,7 +108,3 @@ func requestAccess(ctx context.Context, artefactName string, domain string) (uin
 	perm_cache.Put(key, &perm_cache_entry{artefactid: rid, allowed: false})
 	return 0, errors.AccessDenied(ctx, "(2) access to artefact %s (#%d) denied", artefactName, rid)
 }
-
-
-
-
