@@ -3,12 +3,14 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
+	"time"
+
 	pb "golang.conradwood.net/apis/artefact"
 	"golang.conradwood.net/apis/common"
 	oa "golang.conradwood.net/apis/objectauth"
 	ar "golang.conradwood.net/go-easyops/authremote"
 	"golang.conradwood.net/go-easyops/utils"
-	"os"
 	//	"strings"
 )
 
@@ -33,7 +35,7 @@ func main() {
 	}
 
 	// a context with authentication
-	ctx := ar.Context()
+	ctx := ar.ContextWithTimeout(time.Duration(30) * time.Second)
 	if *find {
 		dofind()
 		os.Exit(0)
@@ -42,10 +44,12 @@ func main() {
 		Browse()
 		os.Exit(0)
 	}
-
+	started := time.Now()
 	response, err := echoClient.List(ctx, &common.Void{})
 	utils.Bail("Failed to ping server", err)
+	dur := time.Since(started)
 	show(response)
+	fmt.Printf("Took %0.1fs to get list of artefacts\n", dur.Seconds())
 }
 func show(response *pb.ArtefactList) {
 	oac := oa.GetObjectAuthServiceClient()
@@ -76,8 +80,6 @@ func show(response *pb.ArtefactList) {
 		t.NewRow()
 	}
 	fmt.Printf("%s\n", t.ToPrettyString())
-	fmt.Printf("Done.\n")
-	os.Exit(0)
 }
 func effectiveRights(a *oa.AccessRightList) string {
 	return "rwx"
@@ -94,7 +96,3 @@ func ResolveRepoID() {
 	utils.Bail("failed to get artefact", err)
 	fmt.Printf("Artefact ID: %d\n", l.ID)
 }
-
-
-
-

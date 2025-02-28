@@ -4,6 +4,12 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"os"
+	"sort"
+	"strings"
+	"sync"
+	"time"
+
 	pb "golang.conradwood.net/apis/artefact"
 	br "golang.conradwood.net/apis/buildrepo"
 	"golang.conradwood.net/apis/common"
@@ -16,11 +22,6 @@ import (
 	"golang.conradwood.net/go-easyops/server"
 	"golang.conradwood.net/go-easyops/utils"
 	"google.golang.org/grpc"
-	"os"
-	"sort"
-	"strings"
-	"sync"
-	"time"
 )
 
 var (
@@ -479,7 +480,3 @@ func (cf *ContentFiller) fillContent(af *pb.Contents) {
 	}
 	createArtefactReference(af)
 }
-
-
-
-

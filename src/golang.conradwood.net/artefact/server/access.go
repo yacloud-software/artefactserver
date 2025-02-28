@@ -43,6 +43,7 @@ func is_privileged_service(ctx context.Context) bool {
 	return false
 }
 
+// returns artefactid or error
 func requestAccess(ctx context.Context, artefactName string, domain string) (uint64, error) {
 	if domain == "" {
 		return 0, fmt.Errorf("access to %s without domain denied", artefactName)
@@ -83,6 +84,9 @@ func requestAccess(ctx context.Context, artefactName string, domain string) (uin
 	if svc != nil && svc.ID == auth.GetServiceIDByName("repobuilder.RepoBuilder") {
 		return rid, nil
 	}
+	if *debug {
+		fmt.Printf("getting user access right\n")
+	}
 	key := fmt.Sprintf("%s_%d", u.ID, rid)
 	perm_cache_object := perm_cache.Get(key)
 	if perm_cache_object != nil {
@@ -98,6 +102,10 @@ func requestAccess(ctx context.Context, artefactName string, domain string) (uin
 	if err != nil {
 		return 0, err
 	}
+	if *debug {
+		fmt.Printf("user access right, view=%v, read=%v\n", ar.Permissions.View, ar.Permissions.Read)
+	}
+
 	if ar.Permissions.View && ar.Permissions.Read {
 		perm_cache.Put(key, &perm_cache_entry{artefactid: rid, allowed: true})
 		return rid, nil
