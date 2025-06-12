@@ -7,11 +7,11 @@ toolchain go1.23.3
 require (
 	golang.conradwood.net/apis/artefact v1.1.1702
 	golang.conradwood.net/apis/buildrepo v1.1.3700
-	golang.conradwood.net/apis/common v1.1.3894
+	golang.conradwood.net/apis/common v1.1.3913
 	golang.conradwood.net/apis/gitserver v1.1.3700
 	golang.conradwood.net/apis/h2gproxy v1.1.3700
 	golang.conradwood.net/apis/objectauth v1.1.3700
-	golang.conradwood.net/go-easyops v0.1.35681
+	golang.conradwood.net/go-easyops v0.1.36000
 	google.golang.org/grpc v1.73.0
 )
 
@@ -29,14 +29,14 @@ require (
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.62.0 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
-	golang.conradwood.net/apis/auth v1.1.3894 // indirect
+	golang.conradwood.net/apis/auth v1.1.3913 // indirect
 	golang.conradwood.net/apis/autodeployer v1.1.3700 // indirect
 	golang.conradwood.net/apis/certmanager v1.1.3700 // indirect
 	golang.conradwood.net/apis/deploymonkey v1.1.3700 // indirect
 	golang.conradwood.net/apis/errorlogger v1.1.3700 // indirect
 	golang.conradwood.net/apis/framework v1.1.3700 // indirect
 	golang.conradwood.net/apis/getestservice v1.1.3700 // indirect
-	golang.conradwood.net/apis/goeasyops v1.1.3894 // indirect
+	golang.conradwood.net/apis/goeasyops v1.1.3913 // indirect
 	golang.conradwood.net/apis/grafanadata v1.1.3700 // indirect
 	golang.conradwood.net/apis/objectstore v1.1.3700 // indirect
 	golang.conradwood.net/apis/registry v1.1.3700 // indirect
@@ -46,7 +46,7 @@ require (
 	golang.yacloud.eu/apis/autodeployer2 v1.1.3700 // indirect
 	golang.yacloud.eu/apis/faultindicator v1.1.3700 // indirect
 	golang.yacloud.eu/apis/fscache v1.1.3700 // indirect
-	golang.yacloud.eu/apis/session v1.1.3894 // indirect
+	golang.yacloud.eu/apis/session v1.1.3913 // indirect
 	golang.yacloud.eu/apis/unixipc v1.1.3700 // indirect
 	golang.yacloud.eu/apis/urlcacher v1.1.3700 // indirect
 	golang.yacloud.eu/unixipc v0.1.31725 // indirect
