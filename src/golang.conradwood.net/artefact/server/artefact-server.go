@@ -40,6 +40,7 @@ type artefactServer struct {
 
 func main() {
 	flag.Parse()
+   server.SetHealth(common.Health_STARTING)
 	fmt.Printf("Starting ArtefactServiceServer...\n")
 	var err error
 	idstore = db.DefaultDBArtefactID()
@@ -48,6 +49,7 @@ func main() {
 	brepo = buildrepo.CreateBuildrepo()
 	sd := server.NewServerDef()
 	sd.SetPort(*port)
+sd.SetOnStartupCallback(startup)
 	sd.SetRegister(server.Register(
 		func(server *grpc.Server) error {
 			e := new(artefactServer)
@@ -58,6 +60,9 @@ func main() {
 	err = server.ServerStartup(sd)
 	utils.Bail("Unable to start server", err)
 	os.Exit(0)
+}
+func startup() {
+	server.SetHealth(common.Health_READY)
 }
 
 /************************************
@@ -480,3 +485,6 @@ func (cf *ContentFiller) fillContent(af *pb.Contents) {
 	}
 	createArtefactReference(af)
 }
+
+
+
