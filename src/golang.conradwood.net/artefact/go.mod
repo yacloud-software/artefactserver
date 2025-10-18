@@ -7,9 +7,9 @@ toolchain go1.23.3
 require (
 	golang.conradwood.net/apis/artefact v1.1.1702
 	golang.conradwood.net/apis/buildrepo v1.1.3700
-	golang.conradwood.net/apis/common v1.1.4067
+	golang.conradwood.net/apis/common v1.1.4068
 	golang.conradwood.net/apis/gitserver v1.1.3700
-	golang.conradwood.net/apis/h2gproxy v1.1.4021
+	golang.conradwood.net/apis/h2gproxy v1.1.4068
 	golang.conradwood.net/apis/objectauth v1.1.3700
 	golang.conradwood.net/go-easyops v0.1.37697
 	google.golang.org/grpc v1.75.0

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	pb "golang.conradwood.net/apis/artefact"
 	"golang.conradwood.net/artefact/db"
@@ -19,7 +20,11 @@ func (a *artefactServer) CreateArtefactIfRequired(ctx context.Context, req *pb.C
 	if req.OrganisationID == "" {
 		return nil, errors.InvalidArgs(ctx, "organisationid required", "organisationid required")
 	}
-	fmt.Printf("Request to create artefact \"%s\" on domain \"%s\"\n", req.ArtefactName, req.BuildRepoDomain)
+	fmt.Printf("Request to create artefact \"%s\", url=\"%s\" on domain \"%s\"\n", req.ArtefactName, req.GitURL, req.BuildRepoDomain)
+	if strings.Contains(req.GitURL, "git.singingcat.net") && strings.Contains(req.BuildRepoDomain, "conradwood") {
+		fmt.Printf("******** THIS LOOKS WRONG. DOMAIN CONRADWOOD.NET FOR SINGINGCAT.NET?? DENIED (artefactserver).\n")
+		return nil, errors.InvalidArgs(ctx, "invalid domain/url combo", "invalid domain/url combo")
+	}
 	afs, err := db.DefaultDBArtefactID().ByName(ctx, req.ArtefactName)
 	if err != nil {
 		return nil, err

@@ -70,8 +70,8 @@ golang.conradwood.net/apis/buildrepo v1.1.3700 h1:HQbWpynP4CqoiAsGMx3Tqm3HI5Euk4
 golang.conradwood.net/apis/buildrepo v1.1.3700/go.mod h1:I+EQS+DjBPX9Oy526tGGTqepjWu2DHmPZHd2xAkZliU=
 golang.conradwood.net/apis/certmanager v1.1.4021 h1:dAOmgNNlTu3VOVAkWFkCcl5bnz9XflrZFyycO9vc/8I=
 golang.conradwood.net/apis/certmanager v1.1.4021/go.mod h1:PpdDjIY//3V84j/qRDPwsT1IT1YUqiDUKneROsZ0bk0=
-golang.conradwood.net/apis/common v1.1.4067 h1:AHBtmIz59ntcqmkIIkob4wCv5u9+LdB9pE3BgpRbFaw=
-golang.conradwood.net/apis/common v1.1.4067/go.mod h1:yAss08PkAbiT4qBPuT1JiyHdiq92USFcZHmsTAduRfY=
+golang.conradwood.net/apis/common v1.1.4068 h1:gfCy558WhNnL8EZHZLTfIJrkBp/fhdOFsQ4AzFqnTLs=
+golang.conradwood.net/apis/common v1.1.4068/go.mod h1:/GHiVWI7JnvA0F3Iz/i4erozzp2ofDQDrmnlwIeo8OA=
 golang.conradwood.net/apis/deploymonkey v1.1.4021 h1:aA27B7dKEF3yWyy7EQs53487aTgaaRo5F1PaAKAXDcw=
 golang.conradwood.net/apis/deploymonkey v1.1.4021/go.mod h1:pFLC/rgPOGmkxDdmuH9fNn39qMFK01NOTyn6ZerPDTA=
 golang.conradwood.net/apis/errorlogger v1.1.4021 h1:hAMuOfG2ecPa5B+T3+AvqidGSq/veD3o/aSUfQlPpZ4=
@@ -86,8 +86,8 @@ golang.conradwood.net/apis/goeasyops v1.1.4067 h1:BLCA1fZwrIkw5HjJSSAcXPSAF8VN3+
 golang.conradwood.net/apis/goeasyops v1.1.4067/go.mod h1:2sYD7lVm+XL2kpU2UYwkJNYOAjtV1Oi8sS7ZEKgEOUE=
 golang.conradwood.net/apis/grafanadata v1.1.4021 h1:DVVgYwreXAn+yaUzZSH9blrBTlbpAYkZFUf7bw3b2y0=
 golang.conradwood.net/apis/grafanadata v1.1.4021/go.mod h1:2+FFM5eWj48eeCcWlor+rVTqiwuPwsBEKulYHdyJ/M0=
-golang.conradwood.net/apis/h2gproxy v1.1.4021 h1:AgW9ytvVYqmdBlFJ4/BHdpyNggQYO8EnJpVRb7W7gV0=
-golang.conradwood.net/apis/h2gproxy v1.1.4021/go.mod h1:F9/hUOug4hzbtP/0ze/h+FoOIJiBK1R4aSzpRn8nn3o=
+golang.conradwood.net/apis/h2gproxy v1.1.4068 h1:UdDd/YMiCEB5/wd4d9rcva8zV63UdaSXDU5dHQ5iHAc=
+golang.conradwood.net/apis/h2gproxy v1.1.4068/go.mod h1:MjeEJVF7PSpH+kCvoMaMHhBcFHI5r2uQP8uab4M6WgU=
 golang.conradwood.net/apis/objectauth v1.1.3700 h1:VwXe6dx4NQkE/OksRXxNLDV8xakwY40XbBVZe5zFAh4=
 golang.conradwood.net/apis/objectauth v1.1.3700/go.mod h1:C5Podggj8bwaabviGb+qCc4ZicjvLEElruwzrR/dhxE=
 golang.conradwood.net/apis/objectstore v1.1.4021 h1:SW4ZRsdGIz9GynPbiLilgnBSLnilDINw9ZJc/CAU+G4=
