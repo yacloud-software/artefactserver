@@ -127,6 +127,7 @@ message ArtefactID {
   string Domain = 2;
   string Name = 3;
   string URL=4;
+  uint32 Created=5;
 }
 
 // metadata about an artefact
