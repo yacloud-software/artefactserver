@@ -16,17 +16,18 @@ package db
 
 Main Table:
 
- CREATE TABLE artefactid (id integer primary key default nextval('artefactid_seq'),domain text not null  ,name text not null  ,url text not null  );
+ CREATE TABLE artefactid (id integer primary key default nextval('artefactid_seq'),domain text not null  ,name text not null  ,url text not null  ,created integer not null  );
 
 Alter statements:
 ALTER TABLE artefactid ADD COLUMN IF NOT EXISTS domain text not null default '';
 ALTER TABLE artefactid ADD COLUMN IF NOT EXISTS name text not null default '';
 ALTER TABLE artefactid ADD COLUMN IF NOT EXISTS url text not null default '';
+ALTER TABLE artefactid ADD COLUMN IF NOT EXISTS created integer not null default 0;
 
 
 Archive Table: (structs can be moved from main to archive using Archive() function)
 
- CREATE TABLE artefactid_archive (id integer unique not null,domain text not null,name text not null,url text not null);
+ CREATE TABLE artefactid_archive (id integer unique not null,domain text not null,name text not null,url text not null,created integer not null);
 */
 
 import (
@@ -50,6 +51,12 @@ type DBArtefactID struct {
 	SQLArchivetablename  string
 	customColumnHandlers []CustomColumnHandler
 	lock                 sync.Mutex
+}
+
+func init() {
+	RegisterDBHandlerFactory(func() Handler {
+		return DefaultDBArtefactID()
+	})
 }
 
 func DefaultDBArtefactID() *DBArtefactID {
@@ -87,6 +94,10 @@ func (a *DBArtefactID) AddCustomColumnHandler(w CustomColumnHandler) {
 	a.lock.Unlock()
 }
 
+func (a *DBArtefactID) NewQuery() *Query {
+	return newQuery(a)
+}
+
 // archive. It is NOT transactionally save.
 func (a *DBArtefactID) Archive(ctx context.Context, id uint64) error {
 
@@ -97,7 +108,7 @@ func (a *DBArtefactID) Archive(ctx context.Context, id uint64) error {
 	}
 
 	// now save it to archive:
-	_, e := a.DB.ExecContext(ctx, "archive_DBArtefactID", "insert into "+a.SQLArchivetablename+" (id,domain, name, url) values ($1,$2, $3, $4) ", p.ID, p.Domain, p.Name, p.URL)
+	_, e := a.DB.ExecContext(ctx, "archive_DBArtefactID", "insert into "+a.SQLArchivetablename+" (id,domain, name, url, created) values ($1,$2, $3, $4, $5) ", p.ID, p.Domain, p.Name, p.URL, p.Created)
 	if e != nil {
 		return e
 	}
@@ -118,6 +129,7 @@ func (a *DBArtefactID) buildSaveMap(ctx context.Context, p *savepb.ArtefactID) (
 	res["domain"] = a.get_col_from_proto(p, "domain")
 	res["name"] = a.get_col_from_proto(p, "name")
 	res["url"] = a.get_col_from_proto(p, "url")
+	res["created"] = a.get_col_from_proto(p, "created")
 	if extra != nil {
 		for k, v := range extra {
 			res[k] = v
@@ -184,9 +196,17 @@ func (a *DBArtefactID) saveMap(ctx context.Context, queryname string, smap map[s
 	return id, nil
 }
 
+// if ID==0 save, otherwise update
+func (a *DBArtefactID) SaveOrUpdate(ctx context.Context, p *savepb.ArtefactID) error {
+	if p.ID == 0 {
+		_, err := a.Save(ctx, p)
+		return err
+	}
+	return a.Update(ctx, p)
+}
 func (a *DBArtefactID) Update(ctx context.Context, p *savepb.ArtefactID) error {
 	qn := "DBArtefactID_Update"
-	_, e := a.DB.ExecContext(ctx, qn, "update "+a.SQLTablename+" set domain=$1, name=$2, url=$3 where id = $4", a.get_Domain(p), a.get_Name(p), a.get_URL(p), p.ID)
+	_, e := a.DB.ExecContext(ctx, qn, "update "+a.SQLTablename+" set domain=$1, name=$2, url=$3, created=$4 where id = $5", a.get_Domain(p), a.get_Name(p), a.get_URL(p), a.get_Created(p), p.ID)
 
 	return a.Error(ctx, qn, e)
 }
@@ -344,6 +364,36 @@ func (a *DBArtefactID) ByLikeURL(ctx context.Context, p string) ([]*savepb.Artef
 	return l, nil
 }
 
+// get all "DBArtefactID" rows with matching Created
+func (a *DBArtefactID) ByCreated(ctx context.Context, p uint32) ([]*savepb.ArtefactID, error) {
+	qn := "DBArtefactID_ByCreated"
+	l, e := a.fromQuery(ctx, qn, "created = $1", p)
+	if e != nil {
+		return nil, a.Error(ctx, qn, errors.Errorf("ByCreated: error scanning (%s)", e))
+	}
+	return l, nil
+}
+
+// get all "DBArtefactID" rows with multiple matching Created
+func (a *DBArtefactID) ByMultiCreated(ctx context.Context, p []uint32) ([]*savepb.ArtefactID, error) {
+	qn := "DBArtefactID_ByCreated"
+	l, e := a.fromQuery(ctx, qn, "created in $1", p)
+	if e != nil {
+		return nil, a.Error(ctx, qn, errors.Errorf("ByCreated: error scanning (%s)", e))
+	}
+	return l, nil
+}
+
+// the 'like' lookup
+func (a *DBArtefactID) ByLikeCreated(ctx context.Context, p uint32) ([]*savepb.ArtefactID, error) {
+	qn := "DBArtefactID_ByLikeCreated"
+	l, e := a.fromQuery(ctx, qn, "created ilike $1", p)
+	if e != nil {
+		return nil, a.Error(ctx, qn, errors.Errorf("ByCreated: error scanning (%s)", e))
+	}
+	return l, nil
+}
+
 /**********************************************************************
 * The field getters
 **********************************************************************/
@@ -368,6 +418,11 @@ func (a *DBArtefactID) get_URL(p *savepb.ArtefactID) string {
 	return string(p.URL)
 }
 
+// getter for field "Created" (Created) [uint32]
+func (a *DBArtefactID) get_Created(p *savepb.ArtefactID) uint32 {
+	return uint32(p.Created)
+}
+
 /**********************************************************************
 * Helper to convert from an SQL Query
 **********************************************************************/
@@ -381,8 +436,11 @@ func (a *DBArtefactID) ByDBQuery(ctx context.Context, query *Query) ([]*savepb.A
 	i := 0
 	for col_name, value := range extra_fields {
 		i++
-		efname := fmt.Sprintf("EXTRA_FIELD_%d", i)
-		query.Add(col_name+" = "+efname, QP{efname: value})
+		/*
+		   efname:=fmt.Sprintf("EXTRA_FIELD_%d",i)
+		   query.Add(col_name+" = "+efname,QP{efname:value})
+		*/
+		query.AddEqual(col_name, value)
 	}
 
 	gw, paras := query.ToPostgres()
@@ -448,6 +506,8 @@ func (a *DBArtefactID) get_col_from_proto(p *savepb.ArtefactID, colname string) 
 		return a.get_Name(p)
 	} else if colname == "url" {
 		return a.get_URL(p)
+	} else if colname == "created" {
+		return a.get_Created(p)
 	}
 	panic(fmt.Sprintf("in table \"%s\", column \"%s\" cannot be resolved to proto field name", a.Tablename(), colname))
 }
@@ -457,10 +517,10 @@ func (a *DBArtefactID) Tablename() string {
 }
 
 func (a *DBArtefactID) SelectCols() string {
-	return "id,domain, name, url"
+	return "id,domain, name, url, created"
 }
 func (a *DBArtefactID) SelectColsQualified() string {
-	return "" + a.SQLTablename + ".id," + a.SQLTablename + ".domain, " + a.SQLTablename + ".name, " + a.SQLTablename + ".url"
+	return "" + a.SQLTablename + ".id," + a.SQLTablename + ".domain, " + a.SQLTablename + ".name, " + a.SQLTablename + ".url, " + a.SQLTablename + ".created"
 }
 
 func (a *DBArtefactID) FromRows(ctx context.Context, rows *gosql.Rows) ([]*savepb.ArtefactID, error) {
@@ -474,7 +534,8 @@ func (a *DBArtefactID) FromRows(ctx context.Context, rows *gosql.Rows) ([]*savep
 		scanTarget_1 := &foo.Domain
 		scanTarget_2 := &foo.Name
 		scanTarget_3 := &foo.URL
-		err := rows.Scan(scanTarget_0, scanTarget_1, scanTarget_2, scanTarget_3)
+		scanTarget_4 := &foo.Created
+		err := rows.Scan(scanTarget_0, scanTarget_1, scanTarget_2, scanTarget_3, scanTarget_4)
 		// END SCANNER
 
 		if err != nil {
@@ -491,15 +552,17 @@ func (a *DBArtefactID) FromRows(ctx context.Context, rows *gosql.Rows) ([]*savep
 func (a *DBArtefactID) CreateTable(ctx context.Context) error {
 	csql := []string{
 		`create sequence if not exists ` + a.SQLTablename + `_seq;`,
-		`CREATE TABLE if not exists ` + a.SQLTablename + ` (id integer primary key default nextval('` + a.SQLTablename + `_seq'),domain text not null ,name text not null ,url text not null );`,
-		`CREATE TABLE if not exists ` + a.SQLTablename + `_archive (id integer primary key default nextval('` + a.SQLTablename + `_seq'),domain text not null ,name text not null ,url text not null );`,
+		`CREATE TABLE if not exists ` + a.SQLTablename + ` (id integer primary key default nextval('` + a.SQLTablename + `_seq'),domain text not null ,name text not null ,url text not null ,created integer not null );`,
+		`CREATE TABLE if not exists ` + a.SQLTablename + `_archive (id integer primary key default nextval('` + a.SQLTablename + `_seq'),domain text not null ,name text not null ,url text not null ,created integer not null );`,
 		`ALTER TABLE ` + a.SQLTablename + ` ADD COLUMN IF NOT EXISTS domain text not null default '';`,
 		`ALTER TABLE ` + a.SQLTablename + ` ADD COLUMN IF NOT EXISTS name text not null default '';`,
 		`ALTER TABLE ` + a.SQLTablename + ` ADD COLUMN IF NOT EXISTS url text not null default '';`,
+		`ALTER TABLE ` + a.SQLTablename + ` ADD COLUMN IF NOT EXISTS created integer not null default 0;`,
 
 		`ALTER TABLE ` + a.SQLTablename + `_archive  ADD COLUMN IF NOT EXISTS domain text not null  default '';`,
 		`ALTER TABLE ` + a.SQLTablename + `_archive  ADD COLUMN IF NOT EXISTS name text not null  default '';`,
 		`ALTER TABLE ` + a.SQLTablename + `_archive  ADD COLUMN IF NOT EXISTS url text not null  default '';`,
+		`ALTER TABLE ` + a.SQLTablename + `_archive  ADD COLUMN IF NOT EXISTS created integer not null  default 0;`,
 	}
 
 	for i, c := range csql {

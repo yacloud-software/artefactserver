@@ -116,7 +116,7 @@ func try_resolve_repoid_by_url(ctx context.Context, id *pb.ID) (*pb.ID, error) {
 	for _, url := range git_repo.URLs {
 		u := "https://" + url.Host + "/git/" + url.Path
 		fmt.Printf("GitRepo URL: %s\n", u)
-		q := db.NewQuery()
+		q := db.DefaultDBArtefactID().NewQuery()
 		q.AddEqual("url", u)
 		afids, err := db.DefaultDBArtefactID().ByDBQuery(ctx, q)
 		if err != nil {

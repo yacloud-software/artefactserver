@@ -86,8 +86,8 @@ golang.conradwood.net/apis/goeasyops v1.1.4120 h1:k9YwbZr+cdAEJv7CcsblJzRC1r1EjD
 golang.conradwood.net/apis/goeasyops v1.1.4120/go.mod h1:VIERkf6rag5AEg+k1daDsCg5WKJZDYKsOSWlReH26n0=
 golang.conradwood.net/apis/grafanadata v1.1.4021 h1:DVVgYwreXAn+yaUzZSH9blrBTlbpAYkZFUf7bw3b2y0=
 golang.conradwood.net/apis/grafanadata v1.1.4021/go.mod h1:2+FFM5eWj48eeCcWlor+rVTqiwuPwsBEKulYHdyJ/M0=
-golang.conradwood.net/apis/h2gproxy v1.1.4068 h1:UdDd/YMiCEB5/wd4d9rcva8zV63UdaSXDU5dHQ5iHAc=
-golang.conradwood.net/apis/h2gproxy v1.1.4068/go.mod h1:MjeEJVF7PSpH+kCvoMaMHhBcFHI5r2uQP8uab4M6WgU=
+golang.conradwood.net/apis/h2gproxy v1.1.4120 h1:Aid26rchaEKxvOTDTqVVqblJIUM3h+/VvBxMuV1BQf0=
+golang.conradwood.net/apis/h2gproxy v1.1.4120/go.mod h1:L1K4gFlmIwuVVWbS2ZeX0V6ehYbQu78ZgtNvNet+J5o=
 golang.conradwood.net/apis/objectauth v1.1.3700 h1:VwXe6dx4NQkE/OksRXxNLDV8xakwY40XbBVZe5zFAh4=
 golang.conradwood.net/apis/objectauth v1.1.3700/go.mod h1:C5Podggj8bwaabviGb+qCc4ZicjvLEElruwzrR/dhxE=
 golang.conradwood.net/apis/objectstore v1.1.4021 h1:SW4ZRsdGIz9GynPbiLilgnBSLnilDINw9ZJc/CAU+G4=

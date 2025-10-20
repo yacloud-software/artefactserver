@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	pb "golang.conradwood.net/apis/artefact"
 	"golang.conradwood.net/artefact/db"
@@ -20,7 +21,8 @@ func (a *artefactServer) CreateArtefactIfRequired(ctx context.Context, req *pb.C
 	if req.OrganisationID == "" {
 		return nil, errors.InvalidArgs(ctx, "organisationid required", "organisationid required")
 	}
-	fmt.Printf("Request to create artefact \"%s\", url=\"%s\" on domain \"%s\"\n", req.ArtefactName, req.GitURL, req.BuildRepoDomain)
+	prefix := fmt.Sprintf("[\"%s\", url=\"%s\", domain=\"%s\"] ", req.ArtefactName, req.GitURL, req.BuildRepoDomain)
+	fmt.Print(prefix + "Request to create (if required)\n")
 	if strings.Contains(req.GitURL, "git.singingcat.net") && strings.Contains(req.BuildRepoDomain, "conradwood") {
 		fmt.Printf("******** THIS LOOKS WRONG. DOMAIN CONRADWOOD.NET FOR SINGINGCAT.NET?? DENIED (artefactserver).\n")
 		return nil, errors.InvalidArgs(ctx, "invalid domain/url combo", "invalid domain/url combo")
@@ -39,6 +41,7 @@ func (a *artefactServer) CreateArtefactIfRequired(ctx context.Context, req *pb.C
 	}
 
 	if myaf != nil {
+		fmt.Printf(prefix+" exists already (id=%d)\n", myaf.ID)
 		// if new create request has a new url, update it
 		if req.GitURL != "" && myaf.URL != req.GitURL {
 			myaf.URL = req.GitURL
@@ -58,9 +61,10 @@ func (a *artefactServer) CreateArtefactIfRequired(ctx context.Context, req *pb.C
 		return res, nil
 	}
 	myaf = &pb.ArtefactID{
-		Domain: req.BuildRepoDomain,
-		Name:   req.ArtefactName,
-		URL:    req.GitURL,
+		Domain:  req.BuildRepoDomain,
+		Name:    req.ArtefactName,
+		URL:     req.GitURL,
+		Created: uint32(time.Now().Unix()),
 	}
 	_, err = db.DefaultDBArtefactID().Save(ctx, myaf)
 	if err != nil {
@@ -70,6 +74,7 @@ func (a *artefactServer) CreateArtefactIfRequired(ctx context.Context, req *pb.C
 	if err != nil {
 		return nil, err
 	}
+	fmt.Printf(prefix+" created (id=%d)\n", am.ID)
 	res := &pb.CreateArtefactResponse{
 		Created: true,
 		Meta:    am,
