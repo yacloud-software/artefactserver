@@ -7,9 +7,9 @@ require (
 	golang.conradwood.net/apis/buildrepo v1.1.4130
 	golang.conradwood.net/apis/common v1.1.4381
 	golang.conradwood.net/apis/gitserver v1.1.4130
-	golang.conradwood.net/apis/h2gproxy v1.1.4186
+	golang.conradwood.net/apis/h2gproxy v1.1.4381
 	golang.conradwood.net/apis/objectauth v1.1.4130
-	golang.conradwood.net/go-easyops v0.1.39103
+	golang.conradwood.net/go-easyops v0.1.39410
 	google.golang.org/grpc v1.78.0
 )
 
